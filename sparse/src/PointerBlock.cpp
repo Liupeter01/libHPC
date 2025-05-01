@@ -2,29 +2,37 @@
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
 OtherBlock &sparse::PointerBlock<PointerGridSize, OtherBlock>::operator()(
-    const std::intptr_t x, const std::intptr_t y) const {}
+    const std::intptr_t x, const std::intptr_t y) const {
+
+  auto &block = m_data[x & this->BMask][y & this->BMask];
+  return !block ? OtherBlock{} : block;
+}
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
 const OtherBlock &sparse::PointerBlock<PointerGridSize, OtherBlock>::read(
-    const std::intptr_t x, const std::intptr_t y) const {}
+    const std::intptr_t x, const std::intptr_t y) const {
+
+  return operator()(x, y);
+}
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
 OtherBlock *sparse::PointerBlock<PointerGridSize, OtherBlock>::fetch(
-    const std::intptr_t x, const std::intptr_t y) const {}
+    const std::intptr_t x, const std::intptr_t y) const {
+
+  return nullptr;
+}
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
 void sparse::PointerBlock<PointerGridSize, OtherBlock>::write(
-    const std::intptr_t x, const std::intptr_t y, const OtherBlock &value) {}
+    const std::intptr_t x, const std::intptr_t y, const OtherBlock &value) {
+
+  m_data[x & this->BMask][y & this->BMask] = value;
+}
 
 // template <typename _Ty, std::intptr_t GridSize, std::intptr_t BlockSize>
 // struct PointerGrid {
 //           template <typename _Ty, std::intptr_t BlockSize> struct BlockSquare
 //           {
-//                     static constexpr std::intptr_t
-//                     constexpr_log2(std::intptr_t n) {
-//                               return (n < 2) ? 0 : 1 + constexpr_log2(n >>
-//                               1);
-//                     }
 //
 //                     static constexpr std::intptr_t B = BlockSize;
 //                     static constexpr std::intptr_t BShift =
@@ -176,7 +184,4 @@ void sparse::PointerBlock<PointerGridSize, OtherBlock>::write(
 //                               }
 //                     }
 //           }
-//           tbb::spin_mutex m_spinlock[GridSize][GridSize];
-//           std::unique_ptr<BlockSquare<_Ty, BlockSize>>
-//           m_data[GridSize][GridSize];
 // };
