@@ -3,13 +3,10 @@
 #define _ROOTGRID_HPP_
 
 namespace sparse {
-          template<typename _Ty, typename _Layout>
-          struct RootGrid {
+template <typename _Ty, typename _Layout> struct RootGrid {
 
-                    _Layout m_root;
-          };
-}
-
-
+  _Layout m_root;
+};
+} // namespace sparse
 
 #endif //_ROOTGRID_HPP_
