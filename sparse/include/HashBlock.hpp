@@ -1,6 +1,7 @@
 #pragma once
 #ifndef _HASHBLOCK_HPP_
 #define _HASHBLOCK_HPP_
+#include <BaseBlock.hpp>
 #include <iostream>
 #include <unordered_map>
 
@@ -13,17 +14,22 @@ static void hash_combine_impl(SizeT &seed, SizeT value) {
 }
 } // namespace details
 
-template <typename OtherBlock> struct HashBlock {
-  static constexpr std::intptr_t B = 1;
-  static constexpr std::intptr_t BShift = 0;
-  static constexpr std::intptr_t BMask = ~0;
-  static constexpr bool is_leaf = false; // this is the child of the structure
+template <typename OtherBlock>
+struct HashBlock : BaseBlock<1, false, OtherBlock> {
 
-  OtherBlock &operator()(const std::intptr_t x, const std::intptr_t y) const;
-  const OtherBlock &read(const std::intptr_t x, const std::intptr_t y) const;
-  OtherBlock *fetch(const std::intptr_t x, const std::intptr_t y) const;
-  void write(const std::intptr_t x, const std::intptr_t y,
-             const OtherBlock &value);
+  // Hides BaseBlock::BMask intentionally to mark a wildcard block mask
+  static constexpr std::intptr_t BMask = ~0;
+
+  using BaseType = ::sparse::BaseBlock<1, false, OtherBlock>;
+
+  virtual OtherBlock &operator()(const std::intptr_t x,
+                                 const std::intptr_t y) const override;
+  virtual const OtherBlock &read(const std::intptr_t x,
+                                 const std::intptr_t y) const override;
+  virtual OtherBlock *fetch(const std::intptr_t x,
+                            const std::intptr_t y) const override;
+  virtual void write(const std::intptr_t x, const std::intptr_t y,
+                     const OtherBlock &value) override;
 
   template <typename Func> void foreach (Func &&func) {}
 
