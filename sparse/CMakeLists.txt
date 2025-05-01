@@ -13,5 +13,7 @@ project(
   LANGUAGES C CXX)
 
 add_library(sparse_data_structure OBJECT ${source_file} ${header_file})
+target_include_directories(sparse_data_structure PUBLIC include hpc/include sparse/include)
+target_link_libraries(sparse_data_structure PUBLIC TBB::tbb)
 set_property(TARGET sparse_data_structure PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(sparse_data_structure PROPERTIES LINKER_LANGUAGE CXX)
