@@ -61,6 +61,9 @@ struct BlockInfo : BlockTraits < BlockSize, IsLeaf> {
 
   virtual std::optional<reference> operator()(const std::intptr_t x,
                                                                        const std::intptr_t y) = 0;
+  virtual std::optional<const _Ty&> operator()(const std::intptr_t x,
+            const std::intptr_t y) const = 0;
+
   virtual std::optional<const _Ty &> read(const std::intptr_t x,
                                                                            const std::intptr_t y) const = 0;
 
