@@ -21,6 +21,9 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   virtual std::optional<reference> operator()(const std::intptr_t x,
                                                                   const std::intptr_t y) override;
 
+  virtual std::optional<const _Ty&> operator()(const std::intptr_t x,
+                                                                             const std::intptr_t y) const override;
+
   virtual  std::optional<const  _Ty&>read(const std::intptr_t x,
                                                                   const std::intptr_t y) const override;
 
@@ -44,7 +47,7 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   _Ty m_block[BlockSize][BlockSize];
 
 private:
-          details::Coord2D getTransferredCoord(const std::intptr_t x, const std::intptr_t y);
+          details::Coord2D getTransferredCoord(const std::intptr_t x, const std::intptr_t y) const;
 };
 } // namespace sparse
 
