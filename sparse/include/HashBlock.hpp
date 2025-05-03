@@ -30,6 +30,9 @@ struct HashBlock
   virtual std::optional< reference> operator()(const std::intptr_t x,
                                                                                 const std::intptr_t y) override;
 
+  virtual std::optional<const OtherBlock&> operator()(const std::intptr_t x,
+            const std::intptr_t y) const override;
+
   virtual  std::optional<const OtherBlock&>read(const std::intptr_t x,
                                                                                 const std::intptr_t y) const override;
 
@@ -54,7 +57,7 @@ struct HashBlock
       m_data;
 
 private:
-          details::Coord2D getKey(const std::intptr_t x, const std::intptr_t y);
+          details::Coord2D getKey(const std::intptr_t x, const std::intptr_t y) const;
 
 };
 } // namespace sparse

@@ -12,6 +12,18 @@ sparse::HashBlock<OtherBlock>::operator()(const std::intptr_t x,
            return *it->second;
 }
 
+ template <typename OtherBlock>
+ std::optional< const OtherBlock&>
+sparse::HashBlock<OtherBlock>::operator()(const std::intptr_t x,
+                                                                         const std::intptr_t y)const {
+           auto key = getKey(x, y);
+           auto it = m_data.find(key);
+           if (it == m_data.end()) {
+                     return std::nullopt;
+           }
+           return *it->second;
+ }
+
 template <typename OtherBlock>
 std::optional<const OtherBlock&>
 sparse::HashBlock<OtherBlock>::read(const std::intptr_t x,
@@ -38,7 +50,7 @@ sparse::HashBlock<OtherBlock>::fetch_pointer(const std::intptr_t x, const std::i
           if (it == m_data.end()) {
                     return std::nullopt;
           }
-          return { it->second.get() };
+          return { *it->second };
 }
 
 template <typename OtherBlock>
@@ -46,19 +58,19 @@ std::reference_wrapper<OtherBlock>
 sparse::HashBlock<OtherBlock>::touch_pointer(const std::intptr_t x, const std::intptr_t y) {
 
           auto key = getKey(x, y);
-          /*this pointer exist*/
-          if (auto opt = fetch_pointer(x, y), opt) {
-                    return { *opt };
+          auto it = m_data.find(key);
+          if (it != m_data.end()) {
+                    return *it->second;
           }
           auto block = std::make_unique<OtherBlock>();
           auto ptr = block.get();
           m_data.emplace(key, std::move(block));
-          return { ptr };
+          return { *ptr };
 }
 
 template <typename OtherBlock>
 sparse::details::Coord2D 
-sparse::HashBlock<OtherBlock>::getKey(const std::intptr_t x, const std::intptr_t y) {
+sparse::HashBlock<OtherBlock>::getKey(const std::intptr_t x, const std::intptr_t y)  const {
           return std::make_pair<std::intptr_t, std::intptr_t>(x, y);
           //Currently, we do not need to use this
           //return std::make_pair(x >> this->subblock_shift_bits, 
