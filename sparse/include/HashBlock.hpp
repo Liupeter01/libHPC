@@ -15,26 +15,47 @@ static void hash_combine_impl(SizeT &seed, SizeT value) {
 } // namespace details
 
 template <typename OtherBlock>
-struct HashBlock : BaseBlock<1, false, OtherBlock> {
+struct HashBlock 
+          :public BlockInfo<1, false, OtherBlock>       /*only related to current block, which is hashblock*/
+{
+          using value_type = OtherBlock;
+          using pointer = std::add_pointer_t<OtherBlock>;
+          using reference = OtherBlock&;
+          using const_reference = std::add_const_t<reference>;
+          using CurrBlockType = BlockInfo<1, false, OtherBlock>;
 
-  // Hides BaseBlock::BMask intentionally to mark a wildcard block mask
-  static constexpr std::intptr_t BMask = ~0;
+          /*related to subblock, we need its offset argument*/
+          static constexpr std::intptr_t subblock_shift_bits = SubBlockInfo<OtherBlock>::offset_bits;
 
-  using BaseType = ::sparse::BaseBlock<1, false, OtherBlock>;
+  virtual std::optional< reference> operator()(const std::intptr_t x,
+                                                                                const std::intptr_t y) override;
 
-  virtual OtherBlock &operator()(const std::intptr_t x,
-                                 const std::intptr_t y) const override;
-  virtual const OtherBlock &read(const std::intptr_t x,
-                                 const std::intptr_t y) const override;
-  virtual OtherBlock *fetch(const std::intptr_t x,
-                            const std::intptr_t y) const override;
-  virtual void write(const std::intptr_t x, const std::intptr_t y,
-                     const OtherBlock &value) override;
+  virtual  std::optional<const_reference>read(const std::intptr_t x,
+                                                                                const std::intptr_t y) const override;
 
-  template <typename Func> void foreach (Func &&func) {}
+  virtual void write(const std::intptr_t x, 
+                               const std::intptr_t y,
+                                const OtherBlock& value) override;
 
-  std::unordered_map<details::Coord2D, OtherBlock, std::hash<details::Coord2D>>
+  virtual std::optional < std::reference_wrapper<value_type>> fetch_pointer(const std::intptr_t x,
+                                                                                                                            const std::intptr_t y) const override;
+
+  virtual std::reference_wrapper<value_type> touch_pointer(const std::intptr_t x,
+                                                                                                    const std::intptr_t y) override;
+
+  template <typename Func> 
+  void foreach (Func &&func) {
+            for (auto& [key, value] : m_data) {
+                      func(key.first, key.second, *value);
+          }
+  }
+
+  std::unordered_map<details::Coord2D, std::unique_ptr<OtherBlock>, std::hash<details::Coord2D>>
       m_data;
+
+private:
+          details::Coord2D getKey(const std::intptr_t x, const std::intptr_t y);
+
 };
 } // namespace sparse
 
