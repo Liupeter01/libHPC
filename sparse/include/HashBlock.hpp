@@ -21,7 +21,7 @@ struct HashBlock
           using value_type = OtherBlock;
           using pointer = std::add_pointer_t<OtherBlock>;
           using reference = OtherBlock&;
-          using const_reference = std::add_const_t<reference>;
+          using const_reference = const reference;
           using CurrBlockType = BlockInfo<1, false, OtherBlock>;
 
           /*related to subblock, we need its offset argument*/
@@ -30,7 +30,7 @@ struct HashBlock
   virtual std::optional< reference> operator()(const std::intptr_t x,
                                                                                 const std::intptr_t y) override;
 
-  virtual  std::optional<const_reference>read(const std::intptr_t x,
+  virtual  std::optional<const OtherBlock&>read(const std::intptr_t x,
                                                                                 const std::intptr_t y) const override;
 
   virtual void write(const std::intptr_t x, 
