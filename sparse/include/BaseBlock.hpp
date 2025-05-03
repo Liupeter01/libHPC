@@ -26,10 +26,6 @@ template<typename _Ty>
 struct get_bshift<_Ty, std::enable_if_t<has_bshift<_Ty>::value, void>> {
           static constexpr std::intptr_t value = _Ty::BShift;
 };
-
-template<typename _Ty>
-using get_bshift_v = get_bshift<_Ty>::value;
-
 } // namespace details
 
 template <typename SubBlock>
@@ -41,7 +37,7 @@ struct SubBlockInfo {
           * we have to know the shift parameter of the lower level block
           * so we use :: to get access to the bshift data
           */
-          static constexpr std::intptr_t offset_bits = details::get_bshift_v<SubBlock>;
+          static constexpr std::intptr_t offset_bits = details::get_bshift<SubBlock>::value;
 };
 
 template <std::intptr_t BlockSize, bool IsLeaf>
