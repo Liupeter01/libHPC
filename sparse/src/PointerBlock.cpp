@@ -1,187 +1,92 @@
 #include <PointerBlock.hpp>
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
-OtherBlock &sparse::PointerBlock<PointerGridSize, OtherBlock>::operator()(
-    const std::intptr_t x, const std::intptr_t y) const {
+std::optional<OtherBlock&>
+sparse::PointerBlock<PointerGridSize, OtherBlock>::operator()(
+    const std::intptr_t x, const std::intptr_t y){
 
-  auto &block = m_data[x & this->BMask][y & this->BMask];
-  return !block ? OtherBlock{} : block;
+          auto [new_x, new_y] = getTransferredCoord(x, y);
+          auto& block = m_data[new_x][new_y];
+          if (!block)
+                    return std::nullopt;
+          return { *block };
 }
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
-const OtherBlock &sparse::PointerBlock<PointerGridSize, OtherBlock>::read(
+std::optional< const  OtherBlock&> 
+sparse::PointerBlock<PointerGridSize, OtherBlock>::operator()(const std::intptr_t x,
+          const std::intptr_t y) const{
+          auto [new_x, new_y] = getTransferredCoord(x, y);
+          auto& block = m_data[new_x][new_y];
+          if (!block)
+                    return std::nullopt;
+          return { *block }; 
+}
+
+template <std::intptr_t PointerGridSize, typename OtherBlock>
+std::optional < const OtherBlock&>
+sparse::PointerBlock<PointerGridSize, OtherBlock>::read(
     const std::intptr_t x, const std::intptr_t y) const {
 
   return operator()(x, y);
 }
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
-OtherBlock *sparse::PointerBlock<PointerGridSize, OtherBlock>::fetch(
-    const std::intptr_t x, const std::intptr_t y) const {
+std::optional <std::reference_wrapper<OtherBlock>>
+sparse::PointerBlock<PointerGridSize, OtherBlock>::fetch_pointer(const std::intptr_t x, const std::intptr_t y) const {
 
-  return nullptr;
+          auto [new_x, new_y] = getTransferredCoord(x, y);
+          auto& block = m_data[new_x][new_y];
+          if (!block)
+                    return std::nullopt;
+
+          return { *block };
+}
+
+template <std::intptr_t PointerGridSize, typename OtherBlock>
+std::reference_wrapper<OtherBlock>
+sparse::PointerBlock<PointerGridSize, OtherBlock>::touch_pointer(const std::intptr_t x, const std::intptr_t y) {
+
+          auto [new_x, new_y] = getTransferredCoord(x, y);
+          auto& block = m_data[new_x][new_y];
+
+          /*Impl DCLP Lock Check Method!*/
+          if (!block) {
+                    std::lock_guard<tbb::spin_mutex> _lck(m_spinlock[new_x][new_y]);
+                    if (!m_data[new_x][new_y])
+                              m_data[new_x][new_y] = std::make_unique < OtherBlock>();
+          }
+          return { *m_data[new_x][new_y] };
 }
 
 template <std::intptr_t PointerGridSize, typename OtherBlock>
 void sparse::PointerBlock<PointerGridSize, OtherBlock>::write(
     const std::intptr_t x, const std::intptr_t y, const OtherBlock &value) {
 
-  m_data[x & this->BMask][y & this->BMask] = value;
+          auto block_ptr = touch_pointer(x, y);
+          block_ptr.get().write(x, y, value);
 }
 
-// template <typename _Ty, std::intptr_t GridSize, std::intptr_t BlockSize>
-// struct PointerGrid {
-//           template <typename _Ty, std::intptr_t BlockSize> struct BlockSquare
-//           {
-//
-//                     static constexpr std::intptr_t B = BlockSize;
-//                     static constexpr std::intptr_t BShift =
-//                     constexpr_log2(BlockSize); static constexpr std::intptr_t
-//                     BMask = BlockSize - 1;
-//
-//                     _Ty& operator()(const std::intptr_t x, const
-//                     std::intptr_t y) {
-//                               return m_block[x & BMask][y & BMask];
-//                     }
-//                     _Ty m_block[BlockSize][BlockSize];
-//           };
-//
-//           static_assert((BlockSize& (BlockSize - 1)) == 0,
-//                     "BlockSize must be a power of 2");
-//           static_assert((GridSize& (GridSize - 1)) == 0,
-//                     "GridSize must be a power of 2");
-//
-//           static constexpr std::intptr_t constexpr_log2(std::intptr_t n) {
-//                     return (n < 2) ? 0 : 1 + constexpr_log2(n >> 1);
-//           }
-//
-//           static constexpr std::intptr_t BlockShift =
-//           constexpr_log2(BlockSize); static constexpr std::intptr_t BlockMask
-//           = BlockSize - 1;
-//
-//           static constexpr std::intptr_t GridShift =
-//           constexpr_log2(GridSize); static constexpr std::intptr_t GridMask =
-//           GridSize - 1;
-//
-//           struct WriteAccessor {
-//                     WriteAccessor(PointerGrid& grid) : m_global(grid) {}
-//
-//                     void write(const std::intptr_t x, const std::intptr_t y,
-//                     const _Ty& value) {
-//                               auto x_coord = (x >> BlockShift) & GridMask;
-//                               auto y_coord = (y >> BlockShift) & GridMask;
-//                               auto key = std::pair(x_coord, y_coord);
-//                               auto it = m_cache.find(key);
-//                               if (it != m_cache.end()) {
-//                                         (*it->second)(x, y) = value;
-//                                         return;
-//                               }
-//                               auto& block =
-//                               m_global.m_data[x_coord][y_coord]; if (!block)
-//                               {
-//                                         std::lock_guard<tbb::spin_mutex>
-//                                         _lck(
-//                                                   m_global.m_spinlock[x_coord][y_coord]);
-//                                         if (!block)
-//                                                   block =
-//                                                   std::make_unique<BlockSquare<_Ty,
-//                                                   BlockSize>>();
-//                               }
-//                               (*block)(x, y) = value;
-//                               m_cache.try_emplace(key, block.get());
-//                     }
-//
-//                     using Coord2D = std::pair<std::intptr_t, std::intptr_t>;
-//                     PointerGrid<_Ty, GridSize, BlockSize>& m_global;
-//                     std::map<Coord2D, BlockSquare<_Ty, BlockSize>*> m_cache;
-//           };
-//
-//           WriteAccessor access() { return { *this }; }
-//
-//           const _Ty& read(const std::intptr_t x, const std::intptr_t y) const
-//           {
-//                     auto& block =
-//                               m_data[(x >> BlockShift) & GridMask][(y >>
-//                               BlockShift) & GridMask];
-//                     return !block ? {} : (*block)(x, y);
-//           }
-//           void create(const std::intptr_t x, const std::intptr_t y, const
-//           _Ty& value) {
-//                     auto& block =
-//                               m_data[(x >> BlockShift) & GridMask][(y >>
-//                               BlockShift) & GridMask];
-//                     if (!block) {
-//                               block = std::make_unique<BlockSquare<_Ty,
-//                               BlockSize>>();
-//                     }
-//                     (*block)(x, y) = value;
-//           }
-//
-//           void createBySpinLock(const std::intptr_t x, const std::intptr_t y,
-//                     const _Ty& value) {
-//                     auto& block =
-//                               m_data[(x >> BlockShift) & GridMask][(y >>
-//                               BlockShift) & GridMask];
-//                     if (!block) {
-//                               std::lock_guard<tbb::spin_mutex> _lck(
-//                                         m_spinlock[(x >> BlockShift) &
-//                                         GridMask]
-//                                         [(y >> BlockShift) & GridMask]);
-//                               if (!block)
-//                                         block =
-//                                         std::make_unique<BlockSquare<_Ty,
-//                                         BlockSize>>();
-//                     }
-//                     (*block)(x, y) = value;
-//           }
-//           template <typename Func> void foreach(Func&& func) {
-// #pragma omp parallel for collapse(2)
-//                     for (std::size_t xB = 0; xB < GridSize; ++xB) {
-//                               for (std::size_t yB = 0; yB < GridSize; ++yB) {
-//                                         auto& block = m_data[xB &
-//                                         GridMask][yB & GridMask]; if (!block)
-//                                                   continue; // empty, because
-//                                                   of nullptr
-//
-//                                         for (std::size_t dx = 0; dx <
-//                                         BlockSize; ++dx) {
-//                                                   for (std::size_t dy = 0; dy
-//                                                   < BlockSize; ++dy) {
-//                                                             func(dx + xB <<
-//                                                             GridShift, dy +
-//                                                             yB << GridShift,
-//                                                             (*block)(dx,
-//                                                             dy));
-//                                                   }
-//                                         }
-//                               }
-//                     }
-//           }
-//
-//           void garbageCollection() {
-//                     for (std::size_t xB = 0; xB < GridSize; ++xB) {
-//                               for (std::size_t yB = 0; yB < GridSize; ++yB) {
-//                                         auto& block = m_data[xB &
-//                                         GridMask][yB & GridMask]; if (!block)
-//                                                   continue; // empty, because
-//                                                   of nullptr
-//
-//                                         for (std::size_t dx = 0; dx <
-//                                         BlockSize; ++dx) {
-//                                                   for (std::size_t dy = 0; dy
-//                                                   < BlockSize; ++dy) {
-//                                                             // has data
-//                                                             if ((*block)(dx,
-//                                                             dy) != _Ty{}) {
-//                                                                       goto
-//                                                                       actived_block;
-//                                                             }
-//                                                   }
-//                                         }
-//                               deactived_block:
-//                                         block.reset(nullptr);
-//                               actived_block:;
-//                               }
-//                     }
-//           }
-// };
+template <std::intptr_t PointerGridSize, typename OtherBlock>
+sparse::details::Coord2D 
+sparse::PointerBlock<PointerGridSize, OtherBlock>::getTransferredCoord(const std::intptr_t x, const std::intptr_t y) {
+          return std::make_pair(x & this->BMask, y & this->BMask);
+}
+
+template <std::intptr_t PointerGridSize, typename OtherBlock>
+void 
+sparse::PointerBlock<PointerGridSize, OtherBlock>::WriteAccessor::write(const std::intptr_t x, 
+                                                                                                                        const std::intptr_t y, 
+                                                                                                                        const OtherBlock& value) {
+          auto key = m_global.getTransferredCoord(x, y);
+          auto it = m_cache.find(key);
+
+          if (it != m_cache.end()) {
+                    it->second.get().write(x, y, value); 
+                    return;
+          }
+
+          auto& ref = m_global.touch_pointer(x, y); 
+          ref.get().write(x, y, value);
+          m_cache.try_emplace(key, ref);
+}
