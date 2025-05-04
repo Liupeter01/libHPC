@@ -14,7 +14,7 @@ void *allocate_aligned_memory(size_t align, size_t size) {
 #ifdef _MSC_VER
   return _aligned_malloc(size, align);
 #else
-  return std::aligned_alloc(alignment, size);
+  return std::aligned_alloc(align, size);
 #endif
 }
 void deallocate_aligned_memory(void *ptr) noexcept {
