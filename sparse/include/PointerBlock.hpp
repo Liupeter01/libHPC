@@ -23,7 +23,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 
   using value_type = OtherBlock;
   using reference = OtherBlock &;
-  using const_reference = const OtherBlock &;
+  using const_value = const  OtherBlock;
 
   struct WriteAccessor {
     WriteAccessor(PointerBlock &grid) : m_global(grid) {}
@@ -46,25 +46,30 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     std::map<details::Coord2D, std::reference_wrapper<value_type>> m_cache;
   };
 
-  virtual std::optional<reference> operator()(const std::intptr_t x,
+  bool has(std::intptr_t x, std::intptr_t y) const {
+            auto [new_x, new_y] = getTransferredCoord(x, y);
+            return m_data[new_x][new_y] != nullptr;
+  }
+
+  virtual std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
                                               const std::intptr_t y) override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
     auto &block = m_data[new_x][new_y];
     if (!block)
       return std::nullopt;
-    return {*block};
+    return std::make_optional(std::ref(*block)); 
   }
 
-  virtual std::optional<const_reference>
+  virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
     auto &block = m_data[new_x][new_y];
     if (!block)
       return std::nullopt;
-    return {*block};
+    return std::make_optional(std::cref(*block));
   }
 
-  virtual std::optional<const_reference>
+  virtual std::optional<std::reference_wrapper<const_value>>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }
@@ -81,7 +86,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     if (!block)
       return std::nullopt;
 
-    return {*block};
+    return std::make_optional(std::ref(*block));
   }
 
   virtual std::reference_wrapper<value_type>
@@ -95,7 +100,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
       if (!m_data[new_x][new_y])
         m_data[new_x][new_y] = std::make_unique<OtherBlock>();
     }
-    return {*m_data[new_x][new_y]};
+    return std::ref(*m_data[new_x][new_y]);
   }
 
   WriteAccessor access() { return {*this}; }

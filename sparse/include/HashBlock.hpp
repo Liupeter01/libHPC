@@ -21,34 +21,34 @@ struct HashBlock
 {
   using value_type = OtherBlock;
   using reference = OtherBlock &;
-  using const_reference = const OtherBlock &;
+  using const_value = const OtherBlock;
   using CurrBlockType = BlockInfo<1, false, OtherBlock>;
 
   /*related to subblock, we need its offset argument*/
   static constexpr std::intptr_t subblock_shift_bits =
       SubBlockInfo<OtherBlock>::offset_bits;
 
-  virtual std::optional<reference> operator()(const std::intptr_t x,
+  virtual  std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
                                               const std::intptr_t y) override {
     auto key = getKey(x, y);
     auto it = m_data.find(key);
     if (it == m_data.end()) {
       return std::nullopt;
     }
-    return *it->second;
+    return std::make_optional(std::ref(*it->second));
   }
 
-  virtual std::optional<const_reference>
+  virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-    auto key = getKey(x, y);
-    auto it = m_data.find(key);
-    if (it == m_data.end()) {
-      return std::nullopt;
-    }
-    return *it->second;
+            auto key = getKey(x, y);
+            auto it = m_data.find(key);
+            if (it == m_data.end()) {
+                      return std::nullopt;
+            }
+            return std::make_optional(std::cref(*it->second));
   }
 
-  virtual std::optional<const_reference>
+  virtual std::optional<std::reference_wrapper<const_value>>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }
@@ -65,20 +65,16 @@ struct HashBlock
     if (it == m_data.end()) {
       return std::nullopt;
     }
-    return {*it->second};
+    return std::make_optional(std::ref(*it->second));
   }
 
   virtual std::reference_wrapper<value_type>
   touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-    auto key = getKey(x, y);
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-      return *it->second;
-    }
-    auto block = std::make_unique<OtherBlock>();
-    auto ptr = block.get();
-    m_data.emplace(key, std::move(block));
-    return {*ptr};
+            auto key = getKey(x, y);
+            auto& ptr = m_data[key];
+            if (!ptr)
+                      ptr = std::make_unique<OtherBlock>();
+            return std::ref(*ptr);
   }
 
   template <typename Func> void foreach (Func &&func) {

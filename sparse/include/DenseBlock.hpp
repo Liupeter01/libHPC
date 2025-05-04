@@ -15,21 +15,21 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
 
   using value_type = _Ty;
   using reference = _Ty &;
-  using const_reference = const _Ty &;
+  using const_value = const _Ty;
 
-  virtual std::optional<reference> operator()(const std::intptr_t x,
+  virtual std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
                                               const std::intptr_t y) override {
-    auto [new_x, new_y] = getTransferredCoord(x, y);
-    return m_block[new_x][new_y];
+            auto [new_x, new_y] = getTransferredCoord(x, y);
+            return std::make_optional(std::ref(m_block[new_x][new_y]));
   }
 
-  virtual std::optional<const_reference>
+  virtual  std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-    auto [new_x, new_y] = getTransferredCoord(x, y);
-    return m_block[new_x][new_y];
+            auto [new_x, new_y] = getTransferredCoord(x, y);
+            return std::make_optional(std::ref(m_block[new_x][new_y]));
   }
 
-  virtual std::optional<const_reference>
+  virtual  std::optional<std::reference_wrapper<const_value>>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }
@@ -41,8 +41,7 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
 
   virtual std::optional<std::reference_wrapper<value_type>>
   fetch_pointer(const std::intptr_t x, const std::intptr_t y) const override {
-    auto [new_x, new_y] = getTransferredCoord(x, y);
-    return {m_block[new_x][new_y]};
+            return (*this)(x, y); 
   }
 
   virtual std::reference_wrapper<value_type>
@@ -55,7 +54,7 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   template <typename Func> void foreach (Func &&func) {
     for (std::size_t x = 0; x < BlockSize; ++x) {
       for (std::size_t y = 0; y < BlockSize; ++y) {
-        func(x, y, m_block(x, y));
+        func(x, y, m_block[x][y]);
       }
     }
   }
