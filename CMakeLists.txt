@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,6 +22,14 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+ FetchContent_Declare(
+  TBB
+  GIT_REPOSITORY https://github.com/uxlfoundation/oneTBB
+  GIT_TAG v2022.1.0
+  GIT_SUBMODULES_RECURSE TRUE)
+
+FetchContent_MakeAvailable(TBB)
+
 project(
   libHPC
   VERSION 0.0.1
@@ -28,5 +37,3 @@ project(
 
 add_subdirectory(sparse)
 add_subdirectory(hpc)
-add_subdirectory(external/tbb)
-
