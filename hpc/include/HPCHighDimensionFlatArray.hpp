@@ -8,8 +8,8 @@
 #ifndef _HPC_HIGH_DIMENSION_FLAT_ARRAY_HPP_
 #define _HPC_HIGH_DIMENSION_FLAT_ARRAY_HPP_
 
-#include <array>
 #include <AlignedAlloc.hpp>
+#include <array>
 #include <vector>
 
 namespace hpc {
