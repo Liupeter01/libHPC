@@ -12,8 +12,7 @@ using Coord2D = std::pair<std::intptr_t, std::intptr_t>;
 template <typename _Ty, typename _Layout> struct RootGrid {
 
   template <typename Node>
-  static std::optional<_Ty> _read(const Node &node, std::intptr_t x,
-                                  std::intptr_t y) {
+  std::optional<_Ty> _read(const Node &node, std::intptr_t x, std::intptr_t y) {
     // if it is denseblock, then it should be the last node point!
     if constexpr (Node::is_leaf) {
       return node.read(x, y);
@@ -31,8 +30,7 @@ template <typename _Ty, typename _Layout> struct RootGrid {
   }
 
   template <typename Node>
-  static void _write(Node &node, std::intptr_t x, std::intptr_t y,
-                     const _Ty &value) {
+  void _write(Node &node, std::intptr_t x, std::intptr_t y, const _Ty &value) {
     // if it is denseblock, then it should be the last node point!
     if constexpr (Node::is_leaf) {
       node.write(x, y, value);
