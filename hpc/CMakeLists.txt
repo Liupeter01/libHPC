@@ -9,9 +9,10 @@ file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 project(
   HighDimensionFlatArray
-  VERSION 0.0.1
+  VERSION 0.1.0
   LANGUAGES C CXX)
 
-add_library(hpc_array OBJECT ${source_file} ${header_file})
+add_library(hpc_array STATIC ${source_file} ${header_file})
+target_include_directories(hpc_array PUBLIC include)
 set_property(TARGET hpc_array PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(hpc_array PROPERTIES LINKER_LANGUAGE CXX)
