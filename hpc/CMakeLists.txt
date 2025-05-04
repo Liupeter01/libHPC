@@ -9,7 +9,7 @@ file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 project(
   HighDimensionFlatArray
-  VERSION 0.1.0
+  VERSION 0.1.2
   LANGUAGES C CXX)
 
 add_library(hpc_array STATIC ${source_file} ${header_file})
