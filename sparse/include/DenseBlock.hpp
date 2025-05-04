@@ -4,9 +4,9 @@
 #include <BaseBlock.hpp>
 
 namespace sparse {
-                    namespace details {
-                    using Coord2D = std::pair<std::intptr_t, std::intptr_t>;
-          } // namespace details
+namespace details {
+using Coord2D = std::pair<std::intptr_t, std::intptr_t>;
+} // namespace details
 template <std::intptr_t BlockSize, typename _Ty>
 struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
 
@@ -15,26 +15,43 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
 
   using value_type = _Ty;
   using pointer = std::add_pointer_t<_Ty>;
-  using reference = _Ty&;
+  using reference = _Ty &;
   using const_reference = const reference;
 
   virtual std::optional<reference> operator()(const std::intptr_t x,
-                                                                  const std::intptr_t y) override;
+                                              const std::intptr_t y) override {
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return m_block[new_x][new_y];
+  }
 
-  virtual std::optional<const _Ty&> operator()(const std::intptr_t x,
-                                                                             const std::intptr_t y) const override;
+  virtual std::optional<const _Ty &>
+  operator()(const std::intptr_t x, const std::intptr_t y) const override {
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return m_block[new_x][new_y];
+  }
 
-  virtual  std::optional<const  _Ty&>read(const std::intptr_t x,
-                                                                  const std::intptr_t y) const override;
+  virtual std::optional<const _Ty &>
+  read(const std::intptr_t x, const std::intptr_t y) const override {
+    return operator()(x, y);
+  }
 
   virtual void write(const std::intptr_t x, const std::intptr_t y,
-                     const _Ty &value) override;
+                     const _Ty &value) override {
+    touch_pointer(x, y).get() = value;
+  }
 
-  virtual std::optional < std::reference_wrapper<value_type>>
-            fetch_pointer(const std::intptr_t x, const std::intptr_t y) const override;
+  virtual std::optional<std::reference_wrapper<value_type>>
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y) const override {
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return {m_block[new_x][new_y]};
+  }
 
-  virtual  std::reference_wrapper<value_type>
-            touch_pointer(const std::intptr_t x, const std::intptr_t y) override;
+  virtual std::reference_wrapper<value_type>
+  touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
+    auto opt = fetch_pointer(x, y);
+    assert(opt.has_value() && "touch_pointer() called on invalid coordinate");
+    return *opt;
+  }
 
   template <typename Func> void foreach (Func &&func) {
     for (std::size_t x = 0; x < BlockSize; ++x) {
@@ -47,7 +64,10 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   _Ty m_block[BlockSize][BlockSize];
 
 private:
-          details::Coord2D getTransferredCoord(const std::intptr_t x, const std::intptr_t y) const;
+  details::Coord2D getTransferredCoord(const std::intptr_t x,
+                                       const std::intptr_t y) const {
+    return std::make_pair(x & this->BMask, y & this->BMask);
+  }
 };
 } // namespace sparse
 
