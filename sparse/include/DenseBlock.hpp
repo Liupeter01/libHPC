@@ -14,9 +14,8 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
                 "BlockSize must be a power of 2");
 
   using value_type = _Ty;
-  using pointer = std::add_pointer_t<_Ty>;
   using reference = _Ty &;
-  using const_reference = const reference;
+  using const_reference = const _Ty &;
 
   virtual std::optional<reference> operator()(const std::intptr_t x,
                                               const std::intptr_t y) override {
@@ -24,13 +23,13 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
     return m_block[new_x][new_y];
   }
 
-  virtual std::optional<const _Ty &>
+  virtual std::optional<const_reference>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
     return m_block[new_x][new_y];
   }
 
-  virtual std::optional<const _Ty &>
+  virtual std::optional<const_reference>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }

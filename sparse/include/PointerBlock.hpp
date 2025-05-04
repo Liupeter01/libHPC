@@ -22,9 +22,8 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
       SubBlockInfo<OtherBlock>::offset_bits;
 
   using value_type = OtherBlock;
-  using pointer = std::add_pointer_t<OtherBlock>;
   using reference = OtherBlock &;
-  using const_reference = const reference;
+  using const_reference = const OtherBlock &;
 
   struct WriteAccessor {
     WriteAccessor(PointerBlock &grid) : m_global(grid) {}
@@ -56,7 +55,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     return {*block};
   }
 
-  virtual std::optional<const OtherBlock &>
+  virtual std::optional<const_reference>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
     auto &block = m_data[new_x][new_y];
@@ -65,7 +64,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     return {*block};
   }
 
-  virtual std::optional<const OtherBlock &>
+  virtual std::optional<const_reference>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }

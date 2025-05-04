@@ -51,17 +51,16 @@ template <std::intptr_t BlockSize, bool IsLeaf, typename _Ty>
 struct BlockInfo : BlockTraits<BlockSize, IsLeaf> {
 
   using value_type = _Ty;
-  using pointer = std::add_pointer_t<_Ty>;
   using reference = _Ty &;
-  using const_reference = std::add_const_t<reference>;
+  using const_reference = const _Ty &;
 
   virtual std::optional<reference> operator()(const std::intptr_t x,
                                               const std::intptr_t y) = 0;
-  virtual std::optional<const _Ty &>
+  virtual std::optional<const_reference>
   operator()(const std::intptr_t x, const std::intptr_t y) const = 0;
 
-  virtual std::optional<const _Ty &> read(const std::intptr_t x,
-                                          const std::intptr_t y) const = 0;
+  virtual std::optional<const_reference> read(const std::intptr_t x,
+                                              const std::intptr_t y) const = 0;
 
   virtual void write(const std::intptr_t x, const std::intptr_t y,
                      const _Ty &value) = 0;

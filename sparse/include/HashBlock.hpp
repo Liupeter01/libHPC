@@ -20,9 +20,8 @@ struct HashBlock
                                                 which is hashblock*/
 {
   using value_type = OtherBlock;
-  using pointer = std::add_pointer_t<OtherBlock>;
   using reference = OtherBlock &;
-  using const_reference = const reference;
+  using const_reference = const OtherBlock &;
   using CurrBlockType = BlockInfo<1, false, OtherBlock>;
 
   /*related to subblock, we need its offset argument*/
@@ -39,7 +38,7 @@ struct HashBlock
     return *it->second;
   }
 
-  virtual std::optional<const OtherBlock &>
+  virtual std::optional<const_reference>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
     auto key = getKey(x, y);
     auto it = m_data.find(key);
@@ -49,7 +48,7 @@ struct HashBlock
     return *it->second;
   }
 
-  virtual std::optional<const OtherBlock &>
+  virtual std::optional<const_reference>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }
