@@ -52,14 +52,14 @@ struct BlockInfo : BlockTraits<BlockSize, IsLeaf> {
 
   using value_type = _Ty;
   using reference = _Ty &;
-  using const_reference = const _Ty &;
+  using const_value = const _Ty;
 
-  virtual std::optional<reference> operator()(const std::intptr_t x,
+  virtual std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
                                               const std::intptr_t y) = 0;
-  virtual std::optional<const_reference>
+  virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const = 0;
 
-  virtual std::optional<const_reference> read(const std::intptr_t x,
+  virtual std::optional<std::reference_wrapper<const_value>> read(const std::intptr_t x,
                                               const std::intptr_t y) const = 0;
 
   virtual void write(const std::intptr_t x, const std::intptr_t y,
