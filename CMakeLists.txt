@@ -37,3 +37,10 @@ project(
 
 add_subdirectory(sparse)
 add_subdirectory(hpc)
+
+# expose all public include paths to parent scope (optional)
+set(LIBHPC_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/sparse/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/hpc/include
+  CACHE INTERNAL "libHPC include dirs"
+)
