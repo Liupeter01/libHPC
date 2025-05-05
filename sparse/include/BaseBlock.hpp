@@ -66,7 +66,7 @@ struct BlockInfo : BlockTraits<BlockSize, IsLeaf> {
                      const _Ty &value) = 0;
 
   virtual std::optional<std::reference_wrapper<value_type>>
-  fetch_pointer(const std::intptr_t x, const std::intptr_t y) const = 0;
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y)  = 0;
   virtual std::reference_wrapper<value_type>
   touch_pointer(const std::intptr_t x, const std::intptr_t y) = 0;
 };
