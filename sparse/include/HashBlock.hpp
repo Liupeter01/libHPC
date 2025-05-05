@@ -59,7 +59,7 @@ struct HashBlock
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
-  fetch_pointer(const std::intptr_t x, const std::intptr_t y) const override {
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
     auto key = getKey(x, y);
     auto it = m_data.find(key);
     if (it == m_data.end()) {

@@ -2,6 +2,7 @@
 #ifndef _DENSEBLOCK_HPP_
 #define _DENSEBLOCK_HPP_
 #include <BaseBlock.hpp>
+#include <cassert>
 
 namespace sparse {
 namespace details {
@@ -40,8 +41,8 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
-  fetch_pointer(const std::intptr_t x, const std::intptr_t y) const override {
-            return (*this)(x, y); 
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y)  override {
+            return operator()(x, y);
   }
 
   virtual std::reference_wrapper<value_type>
