@@ -17,6 +17,9 @@ template <typename _Ty, typename _Layout> struct RootGrid {
   void write(std::intptr_t x, std::intptr_t y, const _Ty &value) {
     _write(m_root, x, y, value);
   }
+  template <typename Func> void foreach(const Func& func) {
+            _foreach(m_root, 0, 0, func);
+  }
 
 private:
   template <typename Node>
@@ -60,7 +63,7 @@ private:
   static void _foreach(Node &node, std::intptr_t xBase, std::intptr_t yBase,
                        const Func &func) {
     if constexpr (Node::is_leaf) {
-      node.foreach ([this, xBase, yBase, func](auto &x, auto &y, auto &value) {
+      node.foreach ([xBase, yBase, func](auto &x, auto &y, auto &value) {
         func(xBase + x, yBase + y, value);
       });
     } else {
@@ -69,10 +72,6 @@ private:
                  yBase + (y << Node::subblock_shift_bits), func);
       });
     }
-  }
-
-  template <typename Func> void foreach (const Func &func) {
-    _foreach(m_root, 0, 0, func);
   }
 
   _Layout m_root; // maybe start from hashmap
