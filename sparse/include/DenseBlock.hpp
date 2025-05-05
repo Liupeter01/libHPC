@@ -18,19 +18,19 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   using reference = _Ty &;
   using const_value = const _Ty;
 
-  virtual std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
-                                              const std::intptr_t y) override {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            return std::make_optional(std::ref(m_block[new_x][new_y]));
+  virtual std::optional<std::reference_wrapper<value_type>>
+  operator()(const std::intptr_t x, const std::intptr_t y) override {
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return std::make_optional(std::ref(m_block[new_x][new_y]));
   }
 
-  virtual  std::optional<std::reference_wrapper<const_value>>
+  virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            return std::make_optional(std::ref(m_block[new_x][new_y]));
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return std::make_optional(std::ref(m_block[new_x][new_y]));
   }
 
-  virtual  std::optional<std::reference_wrapper<const_value>>
+  virtual std::optional<std::reference_wrapper<const_value>>
   read(const std::intptr_t x, const std::intptr_t y) const override {
     return operator()(x, y);
   }
@@ -41,8 +41,8 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
-  fetch_pointer(const std::intptr_t x, const std::intptr_t y)  override {
-            return operator()(x, y);
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
+    return operator()(x, y);
   }
 
   virtual std::reference_wrapper<value_type>

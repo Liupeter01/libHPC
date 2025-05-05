@@ -23,7 +23,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 
   using value_type = OtherBlock;
   using reference = OtherBlock &;
-  using const_value = const  OtherBlock;
+  using const_value = const OtherBlock;
 
   struct WriteAccessor {
     WriteAccessor(PointerBlock &grid) : m_global(grid) {}
@@ -47,17 +47,17 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
   };
 
   bool has(std::intptr_t x, std::intptr_t y) const {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            return m_data[new_x][new_y] != nullptr;
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return m_data[new_x][new_y] != nullptr;
   }
 
-  virtual std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
-                                              const std::intptr_t y) override {
+  virtual std::optional<std::reference_wrapper<value_type>>
+  operator()(const std::intptr_t x, const std::intptr_t y) override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
     auto &block = m_data[new_x][new_y];
     if (!block)
       return std::nullopt;
-    return std::make_optional(std::ref(*block)); 
+    return std::make_optional(std::ref(*block));
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
@@ -110,7 +110,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     for (std::size_t x = 0; x < PointerGridSize; ++x) {
       for (std::size_t y = 0; y < PointerGridSize; ++y) {
         if (auto opt = operator()(x, y); opt) {
-                  func(x, y, opt->get());
+          func(x, y, opt->get());
         }
       }
     }

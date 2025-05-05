@@ -28,8 +28,8 @@ struct HashBlock
   static constexpr std::intptr_t subblock_shift_bits =
       SubBlockInfo<OtherBlock>::offset_bits;
 
-  virtual  std::optional<std::reference_wrapper<value_type>> operator()(const std::intptr_t x,
-                                              const std::intptr_t y) override {
+  virtual std::optional<std::reference_wrapper<value_type>>
+  operator()(const std::intptr_t x, const std::intptr_t y) override {
     auto key = getKey(x, y);
     auto it = m_data.find(key);
     if (it == m_data.end()) {
@@ -40,12 +40,12 @@ struct HashBlock
 
   virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-            auto key = getKey(x, y);
-            auto it = m_data.find(key);
-            if (it == m_data.end()) {
-                      return std::nullopt;
-            }
-            return std::make_optional(std::cref(*it->second));
+    auto key = getKey(x, y);
+    auto it = m_data.find(key);
+    if (it == m_data.end()) {
+      return std::nullopt;
+    }
+    return std::make_optional(std::cref(*it->second));
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
@@ -70,11 +70,11 @@ struct HashBlock
 
   virtual std::reference_wrapper<value_type>
   touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-            auto key = getKey(x, y);
-            auto& ptr = m_data[key];
-            if (!ptr)
-                      ptr = std::make_unique<OtherBlock>();
-            return std::ref(*ptr);
+    auto key = getKey(x, y);
+    auto &ptr = m_data[key];
+    if (!ptr)
+      ptr = std::make_unique<OtherBlock>();
+    return std::ref(*ptr);
   }
 
   template <typename Func> void foreach (Func &&func) {
