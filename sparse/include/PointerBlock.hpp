@@ -109,9 +109,10 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 #pragma omp parallel for collapse(2)
     for (std::size_t x = 0; x < PointerGridSize; ++x) {
       for (std::size_t y = 0; y < PointerGridSize; ++y) {
-        if (auto opt = operator()(x, y); opt) {
-          func(x, y, opt->get());
-        }
+                auto opt = fetch_pointer(x, y);
+                if (!opt.has_value())
+                          continue;
+                func(x, y, (*opt).get());
       }
     }
   }
@@ -121,7 +122,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 
 private:
   details::Coord2D getTransferredCoord(const std::intptr_t x,
-                                       const std::intptr_t y) {
+                                       const std::intptr_t y) const{
     return std::make_pair(x & this->BMask, y & this->BMask);
   }
 };
