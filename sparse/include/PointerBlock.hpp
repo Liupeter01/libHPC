@@ -117,6 +117,17 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     }
   }
 
+  PointerBlock& operator=(const PointerBlock& other) {
+            if (this == &other)
+                      return *this;
+            for (std::size_t x = 0; x < PointerGridSize; ++x)
+                      for (std::size_t y = 0; y < PointerGridSize; ++y)
+                                m_data[x][y] = other.m_data[x][y]
+                ? std::make_unique<OtherBlock>(*other.m_data[x][y])
+                          : nullptr;
+                return *this;
+  }
+
   tbb::spin_mutex m_spinlock[PointerGridSize][PointerGridSize];
   std::unique_ptr<OtherBlock> m_data[PointerGridSize][PointerGridSize];
 
