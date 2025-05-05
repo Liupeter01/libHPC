@@ -17,8 +17,8 @@ template <typename _Ty, typename _Layout> struct RootGrid {
   void write(std::intptr_t x, std::intptr_t y, const _Ty &value) {
     _write(m_root, x, y, value);
   }
-  template <typename Func> void foreach(const Func& func) {
-            _foreach(m_root, 0, 0, func);
+  template <typename Func> void foreach (const Func &func) {
+    _foreach(m_root, 0, 0, func);
   }
 
 private:
