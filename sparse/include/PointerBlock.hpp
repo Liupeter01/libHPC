@@ -80,7 +80,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
-  fetch_pointer(const std::intptr_t x, const std::intptr_t y) const override {
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
     auto &block = m_data[new_x][new_y];
     if (!block)
@@ -110,7 +110,7 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     for (std::size_t x = 0; x < PointerGridSize; ++x) {
       for (std::size_t y = 0; y < PointerGridSize; ++y) {
         if (auto opt = operator()(x, y); opt) {
-          func(x, y, *opt);
+                  func(x, y, opt->get());
         }
       }
     }
