@@ -12,10 +12,13 @@ using Coord2D = std::pair<std::intptr_t, std::intptr_t>;
 template <typename _Ty, typename _Layout> struct RootGrid {
 
   template <typename Node>
-  std::optional<_Ty> _read(const Node &node, std::intptr_t x, std::intptr_t y) {
+  static std::optional<_Ty> _read(const Node &node, std::intptr_t x, std::intptr_t y) {
     // if it is denseblock, then it should be the last node point!
     if constexpr (Node::is_leaf) {
-      return node.read(x, y);
+      auto opt =  node.read(x, y);
+      if (!opt.has_value()) 
+                return std::nullopt;
+      return opt->get();
     } else {
       const auto [new_x, new_y] = generateCoord<Node>(x, y);
       /*if it is hash/pointer block, then find the next block and do
@@ -25,12 +28,12 @@ template <typename _Ty, typename _Layout> struct RootGrid {
       if (!next_node.has_value())
         return std::nullopt;
       // you have to pass global coordinates to the function!
-      return _read(next_node.value(), x, y);
+      return _read(next_node->get(), x, y);
     }
   }
 
   template <typename Node>
-  void _write(Node &node, std::intptr_t x, std::intptr_t y, const _Ty &value) {
+  static void _write(Node &node, std::intptr_t x, std::intptr_t y, const _Ty &value) {
     // if it is denseblock, then it should be the last node point!
     if constexpr (Node::is_leaf) {
       node.write(x, y, value);
@@ -38,7 +41,7 @@ template <typename _Ty, typename _Layout> struct RootGrid {
       const auto [new_x, new_y] = generateCoord<Node>(x, y);
       /*if it is hash/pointer block, then find the next block and do
        * recursion!*/
-      auto &next_node = node.touch_pointer(new_x, new_y);
+      auto& next_node = node.touch_pointer(new_x, new_y);
       _write(next_node.get(), x, y, value);
     }
   }
@@ -50,15 +53,35 @@ template <typename _Ty, typename _Layout> struct RootGrid {
     _write(m_root, x, y, value);
   }
 
-  template <typename Func> void foreach (Func &&func);
+  template <typename Node, typename Func> 
+  static void _foreach(Node& node, std::intptr_t xBase, std::intptr_t yBase, const Func& func) {
+            if constexpr (Node::is_leaf) {
+                      node.foreach([this](auto& x, auto& y, auto& value) {
+                                func(xBase + x, yBase + y, value);
+                       });
+            }
+            else {
+                      node.foreach([&](auto& x, auto& y, auto& value) {
+                                _foreach(value,
+                                          xBase + (x << Node::subblock_shift_bits),
+                                          yBase + (y << Node::subblock_shift_bits),
+                                          func);
+                                });
+            }
+  }
+
+  template <typename Func> 
+  void foreach(const Func& func) {
+            _foreach(m_root, 0, 0, func);
+  }
 
   _Layout m_root; // maybe start from hashmap
 
 private:
   template <typename Node>
-  details::Coord2D generateCoord(const std::intptr_t x, const std::intptr_t y) {
+  static details::Coord2D generateCoord(const std::intptr_t x, const std::intptr_t y) {
     return std::make_pair(x >> Node::subblock_shift_bits,
-                          y >> Node::subblock_shift_bits);
+                                        y >> Node::subblock_shift_bits);
   }
 };
 } // namespace sparse
