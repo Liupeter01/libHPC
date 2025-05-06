@@ -3,9 +3,7 @@
 #define _POINTERBLOCK_HPP_
 #include <BaseBlock.hpp>
 #include <map>
-#include <memory>
-#include <mutex>
-#include <tbb/spin_mutex.h>
+#include <atomic>
 
 namespace sparse {
 namespace details {
@@ -21,7 +19,20 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
   static constexpr std::intptr_t subblock_shift_bits =
       SubBlockInfo<OtherBlock>::offset_bits;
 
+  PointerBlock() {
+            for (std::size_t i = 0; i < PointerGridSize; ++i)
+                      for (std::size_t j = 0; j < PointerGridSize; ++j)
+                                m_data[i][j].store(nullptr, std::memory_order_relaxed);
+  }
+
+  virtual ~PointerBlock() {
+            for (std::size_t x = 0; x < PointerGridSize; ++x)
+                      for (std::size_t y = 0; y < PointerGridSize; ++y)
+                                delete m_data[x][y].load(std::memory_order_relaxed);
+  }
+
   using value_type = OtherBlock;
+  using pointer = OtherBlock*;
   using reference = OtherBlock &;
   using const_value = const OtherBlock;
 
@@ -48,25 +59,21 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 
   bool has(std::intptr_t x, std::intptr_t y) const {
     auto [new_x, new_y] = getTransferredCoord(x, y);
-    return m_data[new_x][new_y] != nullptr;
+    return m_data[new_x][new_y].load(std::memory_order_acquire) != nullptr;
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
   operator()(const std::intptr_t x, const std::intptr_t y) override {
-    auto [new_x, new_y] = getTransferredCoord(x, y);
-    auto &block = m_data[new_x][new_y];
-    if (!block)
-      return std::nullopt;
-    return std::make_optional(std::ref(*block));
+            auto [new_x, new_y] = getTransferredCoord(x, y);
+            pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
+            return block ? std::make_optional(std::ref(*block)) : std::nullopt;
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-    auto [new_x, new_y] = getTransferredCoord(x, y);
-    auto &block = m_data[new_x][new_y];
-    if (!block)
-      return std::nullopt;
-    return std::make_optional(std::cref(*block));
+            auto [new_x, new_y] = getTransferredCoord(x, y);
+            pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
+            return block ? std::make_optional(std::cref(*block)) : std::nullopt;
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
@@ -79,28 +86,43 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     touch_pointer(x, y).get() = value;
   }
 
+  virtual void write(const std::intptr_t x, const std::intptr_t y,
+            OtherBlock&& value) override {
+            touch_pointer(x, y).get() = std::move(value);
+  }
+
   virtual std::optional<std::reference_wrapper<value_type>>
   fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-    auto [new_x, new_y] = getTransferredCoord(x, y);
-    auto &block = m_data[new_x][new_y];
-    if (!block)
-      return std::nullopt;
-
-    return std::make_optional(std::ref(*block));
+            return operator()(x, y);
   }
 
   virtual std::reference_wrapper<value_type>
   touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
     auto [new_x, new_y] = getTransferredCoord(x, y);
-    auto &block = m_data[new_x][new_y];
+    pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
 
     /*Impl DCLP Lock Check Method!*/
+
     if (!block) {
-      std::lock_guard<tbb::spin_mutex> _lck(m_spinlock[new_x][new_y]);
-      if (!m_data[new_x][new_y])
-        m_data[new_x][new_y] = std::make_unique<OtherBlock>();
+              pointer expected = nullptr;
+              pointer desired = new OtherBlock;
+              while (!m_data[new_x][new_y].compare_exchange_strong(
+                        expected, desired,
+                        std::memory_order_release,
+                        std::memory_order_relaxed)) {
+
+                        if (expected != nullptr) {
+                                  delete desired;
+                                  block = expected;  
+                                  break;
+                        }
+              }
+
+              if (block == nullptr) {
+                        block = desired;
+              }
     }
-    return std::ref(*m_data[new_x][new_y]);
+    return std::ref(*block);
   }
 
   WriteAccessor access() { return {*this}; }
@@ -109,27 +131,27 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 #pragma omp parallel for collapse(2)
     for (std::size_t x = 0; x < PointerGridSize; ++x) {
       for (std::size_t y = 0; y < PointerGridSize; ++y) {
-        auto opt = fetch_pointer(x, y);
-        if (!opt.has_value())
-          continue;
-        func(x, y, (*opt).get());
+                pointer block = m_data[x][y].load(std::memory_order_acquire);
+                if (block) {
+                          func(x, y, *block);
+                }
       }
     }
   }
 
-  PointerBlock &operator=(const PointerBlock &other) {
-    if (this == &other)
-      return *this;
-    for (std::size_t x = 0; x < PointerGridSize; ++x)
-      for (std::size_t y = 0; y < PointerGridSize; ++y)
-        m_data[x][y] = other.m_data[x][y]
-                           ? std::make_unique<OtherBlock>(*other.m_data[x][y])
-                           : nullptr;
+  PointerBlock& operator=(const PointerBlock& other) {
+            if (this == &other)
+                      return *this;
+            for (std::size_t x = 0; x < PointerGridSize; ++x) {
+                      for (std::size_t y = 0; y < PointerGridSize; ++y) {
+                                pointer src = other.m_data[x][y].load(std::memory_order_relaxed);
+                                m_data[x][y].store(!src ? nullptr : new OtherBlock(*src), std::memory_order_relaxed);
+                      }
+            }
     return *this;
   }
 
-  tbb::spin_mutex m_spinlock[PointerGridSize][PointerGridSize];
-  std::unique_ptr<OtherBlock> m_data[PointerGridSize][PointerGridSize];
+  std::atomic< pointer> m_data[PointerGridSize][PointerGridSize]{ nullptr };
 
 private:
   details::Coord2D getTransferredCoord(const std::intptr_t x,
