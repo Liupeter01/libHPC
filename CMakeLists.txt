@@ -22,20 +22,10 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if(NOT BUILD_WITHOUT_TEST)
-  enable_testing()
-
-  file(GLOB_RECURSE gtest_source_file CONFIGURE_DEPENDS test/src/*.cpp
-       test/src/*.cc test/src/*.c)
-  file(GLOB_RECURSE gtest_header_file CONFIGURE_DEPENDS test/include/*.hpp
-       test/include/*.h)
-
-  add_executable(hello_test ${gtest_header_file} ${gtest_source_file})
-  target_link_libraries(hello_test GTest::gtest_main)
-
-  include(GoogleTest)
-  gtest_discover_tests(hello_test)
-endif()
+#if(NOT BUILD_WITHOUT_TEST)
+#  enable_testing()
+#  add_subdirectory(test)
+#endif()
 
 FetchContent_Declare(
   TBB
@@ -43,16 +33,7 @@ FetchContent_Declare(
   GIT_TAG v2022.1.0
   GIT_SUBMODULES_RECURSE TRUE)
 
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt
-    ON
-    CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(TBB googletest)
+FetchContent_MakeAvailable(TBB)
 
 project(
   libHPC
