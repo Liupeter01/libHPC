@@ -2,10 +2,9 @@
 #ifndef _HASHBLOCK_HPP_
 #define _HASHBLOCK_HPP_
 #include <BaseBlock.hpp>
-#include <iostream>
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/concurrent_vector.h>
-#include <unordered_map>
+#include <tbb/parallel_for.h>
 
 namespace sparse {
 namespace details {
