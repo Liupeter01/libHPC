@@ -10,7 +10,7 @@ file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 project(
   SparseDS
-  VERSION 0.1.3
+  VERSION 0.1.4
   LANGUAGES C CXX)
 
 add_library(sparse_data_structure STATIC ${source_file} ${header_file})

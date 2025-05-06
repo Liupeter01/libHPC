@@ -54,8 +54,8 @@ private:
       const auto [new_x, new_y] = generateCoord<Node>(x, y);
       /*if it is hash/pointer block, then find the next block and do
        * recursion!*/
-      auto &next_node = node.touch_pointer(new_x, new_y);
-      _write(next_node.get(), x, y, value);
+      auto &next_node = node.touch_pointer(new_x, new_y).get();
+      _write(next_node, x, y, value);
     }
   }
 
