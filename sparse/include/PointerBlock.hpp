@@ -2,8 +2,8 @@
 #ifndef _POINTERBLOCK_HPP_
 #define _POINTERBLOCK_HPP_
 #include <BaseBlock.hpp>
-#include <map>
 #include <atomic>
+#include <map>
 
 namespace sparse {
 namespace details {
@@ -20,19 +20,19 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
       SubBlockInfo<OtherBlock>::offset_bits;
 
   PointerBlock() {
-            for (std::size_t i = 0; i < PointerGridSize; ++i)
-                      for (std::size_t j = 0; j < PointerGridSize; ++j)
-                                m_data[i][j].store(nullptr, std::memory_order_relaxed);
+    for (std::size_t i = 0; i < PointerGridSize; ++i)
+      for (std::size_t j = 0; j < PointerGridSize; ++j)
+        m_data[i][j].store(nullptr, std::memory_order_relaxed);
   }
 
   virtual ~PointerBlock() {
-            for (std::size_t x = 0; x < PointerGridSize; ++x)
-                      for (std::size_t y = 0; y < PointerGridSize; ++y)
-                                delete m_data[x][y].load(std::memory_order_relaxed);
+    for (std::size_t x = 0; x < PointerGridSize; ++x)
+      for (std::size_t y = 0; y < PointerGridSize; ++y)
+        delete m_data[x][y].load(std::memory_order_relaxed);
   }
 
   using value_type = OtherBlock;
-  using pointer = OtherBlock*;
+  using pointer = OtherBlock *;
   using reference = OtherBlock &;
   using const_value = const OtherBlock;
 
@@ -64,16 +64,16 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 
   virtual std::optional<std::reference_wrapper<value_type>>
   operator()(const std::intptr_t x, const std::intptr_t y) override {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
-            return block ? std::make_optional(std::ref(*block)) : std::nullopt;
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
+    return block ? std::make_optional(std::ref(*block)) : std::nullopt;
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
-            return block ? std::make_optional(std::cref(*block)) : std::nullopt;
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    pointer block = m_data[new_x][new_y].load(std::memory_order_acquire);
+    return block ? std::make_optional(std::cref(*block)) : std::nullopt;
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
@@ -87,13 +87,13 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
   }
 
   virtual void write(const std::intptr_t x, const std::intptr_t y,
-            OtherBlock&& value) override {
-            touch_pointer(x, y).get() = std::move(value);
+                     OtherBlock &&value) override {
+    touch_pointer(x, y).get() = std::move(value);
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
   fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-            return operator()(x, y);
+    return operator()(x, y);
   }
 
   virtual std::reference_wrapper<value_type>
@@ -104,23 +104,22 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
     /*Impl DCLP Lock Check Method!*/
 
     if (!block) {
-              pointer expected = nullptr;
-              pointer desired = new OtherBlock;
-              while (!m_data[new_x][new_y].compare_exchange_strong(
-                        expected, desired,
-                        std::memory_order_release,
-                        std::memory_order_relaxed)) {
+      pointer expected = nullptr;
+      pointer desired = new OtherBlock;
+      while (!m_data[new_x][new_y].compare_exchange_strong(
+          expected, desired, std::memory_order_release,
+          std::memory_order_relaxed)) {
 
-                        if (expected != nullptr) {
-                                  delete desired;
-                                  block = expected;  
-                                  break;
-                        }
-              }
+        if (expected != nullptr) {
+          delete desired;
+          block = expected;
+          break;
+        }
+      }
 
-              if (block == nullptr) {
-                        block = desired;
-              }
+      if (block == nullptr) {
+        block = desired;
+      }
     }
     return std::ref(*block);
   }
@@ -131,27 +130,28 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 #pragma omp parallel for collapse(2)
     for (std::size_t x = 0; x < PointerGridSize; ++x) {
       for (std::size_t y = 0; y < PointerGridSize; ++y) {
-                pointer block = m_data[x][y].load(std::memory_order_acquire);
-                if (block) {
-                          func(x, y, *block);
-                }
+        pointer block = m_data[x][y].load(std::memory_order_acquire);
+        if (block) {
+          func(x, y, *block);
+        }
       }
     }
   }
 
-  PointerBlock& operator=(const PointerBlock& other) {
-            if (this == &other)
-                      return *this;
-            for (std::size_t x = 0; x < PointerGridSize; ++x) {
-                      for (std::size_t y = 0; y < PointerGridSize; ++y) {
-                                pointer src = other.m_data[x][y].load(std::memory_order_relaxed);
-                                m_data[x][y].store(!src ? nullptr : new OtherBlock(*src), std::memory_order_relaxed);
-                      }
-            }
+  PointerBlock &operator=(const PointerBlock &other) {
+    if (this == &other)
+      return *this;
+    for (std::size_t x = 0; x < PointerGridSize; ++x) {
+      for (std::size_t y = 0; y < PointerGridSize; ++y) {
+        pointer src = other.m_data[x][y].load(std::memory_order_relaxed);
+        m_data[x][y].store(!src ? nullptr : new OtherBlock(*src),
+                           std::memory_order_relaxed);
+      }
+    }
     return *this;
   }
 
-  std::atomic< pointer> m_data[PointerGridSize][PointerGridSize]{ nullptr };
+  std::atomic<pointer> m_data[PointerGridSize][PointerGridSize]{nullptr};
 
 private:
   details::Coord2D getTransferredCoord(const std::intptr_t x,

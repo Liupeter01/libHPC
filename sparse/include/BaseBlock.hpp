@@ -65,7 +65,7 @@ struct BlockInfo : BlockTraits<BlockSize, IsLeaf> {
   virtual void write(const std::intptr_t x, const std::intptr_t y,
                      const _Ty &value) = 0;
   virtual void write(const std::intptr_t x, const std::intptr_t y,
-            _Ty&& value) = 0;
+                     _Ty &&value) = 0;
 
   virtual std::optional<std::reference_wrapper<value_type>>
   fetch_pointer(const std::intptr_t x, const std::intptr_t y) = 0;

@@ -3,9 +3,9 @@
 #define _HASHBLOCK_HPP_
 #include <BaseBlock.hpp>
 #include <iostream>
-#include <unordered_map>
-#include <tbb/concurrent_vector.h>
 #include <tbb/concurrent_hash_map.h>
+#include <tbb/concurrent_vector.h>
+#include <unordered_map>
 
 namespace sparse {
 namespace details {
@@ -16,15 +16,17 @@ static void hash_combine_impl(SizeT &seed, SizeT value) {
 }
 
 struct Coord2D_HashCompare {
-          static size_t hash(const Coord2D& key) {
-                    std::size_t seed = 0;
-                    sparse::details::hash_combine_impl(seed, static_cast<std::size_t>(key.first));
-                    sparse::details::hash_combine_impl(seed, static_cast<std::size_t>(key.second));
-                    return seed;
-          }
-          static bool equal(const  details::Coord2D& a, const  details::Coord2D& b) {
-                    return a == b;
-          }
+  static size_t hash(const Coord2D &key) {
+    std::size_t seed = 0;
+    sparse::details::hash_combine_impl(seed,
+                                       static_cast<std::size_t>(key.first));
+    sparse::details::hash_combine_impl(seed,
+                                       static_cast<std::size_t>(key.second));
+    return seed;
+  }
+  static bool equal(const details::Coord2D &a, const details::Coord2D &b) {
+    return a == b;
+  }
 };
 
 } // namespace details
@@ -38,10 +40,9 @@ struct HashBlock
   using reference = OtherBlock &;
   using const_value = const OtherBlock;
   using CurrBlockType = BlockInfo<1, false, OtherBlock>;
-  using ContainerType = tbb::concurrent_hash_map<
-            details::Coord2D,
-            std::unique_ptr<OtherBlock>,
-            details::Coord2D_HashCompare>;
+  using ContainerType =
+      tbb::concurrent_hash_map<details::Coord2D, std::unique_ptr<OtherBlock>,
+                               details::Coord2D_HashCompare>;
 
   using ContainerAccessor = typename ContainerType::accessor;
   using ConstContainerAccessor = typename ContainerType::const_accessor;
@@ -55,19 +56,19 @@ struct HashBlock
     auto key = getKey(x, y);
     ContainerAccessor accessor;
     if (!m_data.find(accessor, key)) {
-              return std::nullopt;
+      return std::nullopt;
     }
-    return std::ref(*accessor->second);  // accessor acts like iterator
+    return std::ref(*accessor->second); // accessor acts like iterator
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
   operator()(const std::intptr_t x, const std::intptr_t y) const override {
-            auto key = getKey(x, y);
-            ConstContainerAccessor accessor;
-  if (!m_data.find(accessor, key)) {
-    return std::nullopt;
-  }
-  return std::cref(*accessor->second);  
+    auto key = getKey(x, y);
+    ConstContainerAccessor accessor;
+    if (!m_data.find(accessor, key)) {
+      return std::nullopt;
+    }
+    return std::cref(*accessor->second);
   }
 
   virtual std::optional<std::reference_wrapper<const_value>>
@@ -80,41 +81,41 @@ struct HashBlock
     touch_pointer(x, y).get() = value;
   }
   virtual void write(const std::intptr_t x, const std::intptr_t y,
-            OtherBlock&& value) override {
-            touch_pointer(x, y).get() = std::move(value);
+                     OtherBlock &&value) override {
+    touch_pointer(x, y).get() = std::move(value);
   }
 
   virtual std::optional<std::reference_wrapper<value_type>>
   fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-            return operator()(x, y);
+    return operator()(x, y);
   }
 
   virtual std::reference_wrapper<value_type>
   touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-            auto key = getKey(x, y);
-            ContainerAccessor accessor;
-            m_data.insert(accessor, key);
+    auto key = getKey(x, y);
+    ContainerAccessor accessor;
+    m_data.insert(accessor, key);
 
-            if (!accessor->second) {
-                      accessor->second = std::make_unique<OtherBlock>();
-            }
-            return std::ref(*accessor->second);
+    if (!accessor->second) {
+      accessor->second = std::make_unique<OtherBlock>();
+    }
+    return std::ref(*accessor->second);
   }
 
   template <typename Func> void foreach (Func &&func) {
-            std::vector<details::Coord2D> keys;
-            keys.reserve(m_data.size());
+    std::vector<details::Coord2D> keys;
+    keys.reserve(m_data.size());
 
-            for (auto it = m_data.begin(); it != m_data.end(); ++it) {
-                      keys.push_back(it->first);
-            }
-            auto size = keys.size();
-            tbb::parallel_for(std::size_t(0), size, [&](std::size_t i) {
-                      ContainerAccessor acc;
-                      if (m_data.find(acc, keys[i])) {
-                                func(acc->first.first, acc->first.second, *acc->second);
-                      }
-                      });
+    for (auto it = m_data.begin(); it != m_data.end(); ++it) {
+      keys.push_back(it->first);
+    }
+    auto size = keys.size();
+    tbb::parallel_for(std::size_t(0), size, [&](std::size_t i) {
+      ContainerAccessor acc;
+      if (m_data.find(acc, keys[i])) {
+        func(acc->first.first, acc->first.second, *acc->second);
+      }
+    });
   }
 
   ContainerType m_data;

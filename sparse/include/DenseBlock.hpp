@@ -2,8 +2,8 @@
 #ifndef _DENSEBLOCK_HPP_
 #define _DENSEBLOCK_HPP_
 #include <BaseBlock.hpp>
-#include <tbb/concurrent_vector.h>
 #include <cassert>
+#include <tbb/concurrent_vector.h>
 
 namespace sparse {
 namespace details {
@@ -16,58 +16,57 @@ struct DenseBlock : BlockInfo<BlockSize, true, _Ty> {
                 "BlockSize must be a power of 2");
 
   using value_type = _Ty;
-  using reference = _Ty&;
+  using reference = _Ty &;
   using const_value = const _Ty;
 
-  DenseBlock() {
-            m_block.resize(BlockSize * BlockSize);
-  }
+  DenseBlock() { m_block.resize(BlockSize * BlockSize); }
 
   std::optional<std::reference_wrapper<value_type>>
-            operator()(const std::intptr_t x, const std::intptr_t y) override {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            return std::make_optional(std::ref(m_block[new_x * BlockSize + new_y]));
+  operator()(const std::intptr_t x, const std::intptr_t y) override {
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return std::make_optional(std::ref(m_block[new_x * BlockSize + new_y]));
   }
 
   std::optional<std::reference_wrapper<const_value>>
-            operator()(const std::intptr_t x, const std::intptr_t y) const override {
-            auto [new_x, new_y] = getTransferredCoord(x, y);
-            return std::make_optional(std::cref(m_block[new_x * BlockSize + new_y]));
+  operator()(const std::intptr_t x, const std::intptr_t y) const override {
+    auto [new_x, new_y] = getTransferredCoord(x, y);
+    return std::make_optional(std::cref(m_block[new_x * BlockSize + new_y]));
   }
 
   std::optional<std::reference_wrapper<const_value>>
-            read(const std::intptr_t x, const std::intptr_t y) const override {
-            return operator()(x, y);
+  read(const std::intptr_t x, const std::intptr_t y) const override {
+    return operator()(x, y);
   }
 
-  void write(const std::intptr_t x, const std::intptr_t y, const _Ty& value) override {
-            touch_pointer(x, y).get() = value;
+  void write(const std::intptr_t x, const std::intptr_t y,
+             const _Ty &value) override {
+    touch_pointer(x, y).get() = value;
   }
 
-  void write(const std::intptr_t x, const std::intptr_t y, _Ty&& value) override {
-            touch_pointer(x, y).get() = std::move(value);
+  void write(const std::intptr_t x, const std::intptr_t y,
+             _Ty &&value) override {
+    touch_pointer(x, y).get() = std::move(value);
   }
 
   std::optional<std::reference_wrapper<value_type>>
-            fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-            return operator()(x, y);
+  fetch_pointer(const std::intptr_t x, const std::intptr_t y) override {
+    return operator()(x, y);
   }
 
   std::reference_wrapper<value_type>
-            touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
-            auto opt = fetch_pointer(x, y);
-            assert(opt.has_value());
-            return *opt;
+  touch_pointer(const std::intptr_t x, const std::intptr_t y) override {
+    auto opt = fetch_pointer(x, y);
+    assert(opt.has_value());
+    return *opt;
   }
 
-  template <typename Func>
-  void foreach(Func&& func) {
+  template <typename Func> void foreach (Func &&func) {
 #pragma omp parallel for collapse(2)
-            for (std::size_t x = 0; x < BlockSize; ++x) {
-                      for (std::size_t y = 0; y < BlockSize; ++y) {
-                                func(x, y, m_block[x * BlockSize + y]);
-                      }
-            }
+    for (std::size_t x = 0; x < BlockSize; ++x) {
+      for (std::size_t y = 0; y < BlockSize; ++y) {
+        func(x, y, m_block[x * BlockSize + y]);
+      }
+    }
   }
 
   tbb::concurrent_vector<_Ty> m_block;
