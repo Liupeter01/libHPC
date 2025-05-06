@@ -10,6 +10,7 @@
 
 #include <AlignedAlloc.hpp>
 #include <array>
+#include <cassert>
 #include <vector>
 
 namespace hpc {
