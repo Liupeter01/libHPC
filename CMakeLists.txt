@@ -22,10 +22,10 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-#if(NOT BUILD_WITHOUT_TEST)
-#  enable_testing()
-#  add_subdirectory(test)
-#endif()
+if(NOT BUILD_WITHOUT_TEST)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 FetchContent_Declare(
   TBB
