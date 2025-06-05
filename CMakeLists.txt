@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 include(FetchContent)
 
+option(LIBHPC_BUILD_TESTING "Enable libHPC building tests" ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -20,12 +22,27 @@ endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
+    message(STATUS "No CMAKE_BUILD_TYPE found, Set Release build as default.")
 endif()
 
-#if(NOT BUILD_WITHOUT_TEST)
-#  enable_testing()
-#  add_subdirectory(test)
-#endif()
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Rr]elease")
+  message(STATUS "This is a Release build.")
+  set(TBB_TEST
+      OFF
+      CACHE BOOL "Disable oneTBB tests" FORCE)
+  set(LIBHPC_BUILD_TESTING
+      OFF
+      CACHE BOOL "Disable tests generation" FORCE)
+endif()
+
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+  message(STATUS "This is a Debug build.")
+endif()
+
+if(LIBHPC_BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 FetchContent_Declare(
   TBB
@@ -40,11 +57,13 @@ project(
   VERSION 0.0.1
   LANGUAGES C CXX)
 
-add_subdirectory(sparse)
-add_subdirectory(hpc)
+add_subdirectory(lib/sparse)
+add_subdirectory(lib/hpc)
+add_subdirectory(lib/concurrency)
 
 # expose all public include paths to parent scope (optional)
 set(LIBHPC_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/sparse/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/hpc/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sparse/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/hpc/include
+     ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency/include
     CACHE INTERNAL "libHPC include dirs")
