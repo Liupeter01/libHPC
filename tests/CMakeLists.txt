@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
+project(LIBHPC_test LANGUAGES CXX C)
+
 include(FetchContent)
+
+if (NOT LIBHPC_BUILD_TESTING)
+    return()
+endif()
 
 file(GLOB_RECURSE gtest_source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE gtest_header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
@@ -15,3 +21,5 @@ set(gtest_force_shared_crt
     CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
+
+add_subdirectory(test_hierarchical_lock)
