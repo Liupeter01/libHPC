@@ -65,5 +65,5 @@ add_subdirectory(lib/concurrency)
 set(LIBHPC_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/sparse/include
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/hpc/include
-     ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency/include
+     ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency
     CACHE INTERNAL "libHPC include dirs")
