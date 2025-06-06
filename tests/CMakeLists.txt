@@ -23,3 +23,4 @@ set(gtest_force_shared_crt
 FetchContent_MakeAvailable(googletest)
 
 add_subdirectory(test_hierarchical_lock)
+add_subdirectory(test_threadpool_ref)
