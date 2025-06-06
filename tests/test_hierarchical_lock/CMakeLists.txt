@@ -14,5 +14,5 @@ set(gtest_force_shared_crt
 
 file(GLOB TEST_SOURCES *.cc)
 add_executable(test_hierarchical_lock ${TEST_SOURCES})
-target_link_libraries(test_hierarchical_lock PRIVATE concurrency GTest::gtest)
+target_link_libraries(test_hierarchical_lock PRIVATE hierarchical_lock GTest::gtest)
 gtest_discover_tests(test_hierarchical_lock)
