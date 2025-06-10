@@ -15,6 +15,7 @@ project(
 
 add_subdirectory(hierarchical_lock)
 add_subdirectory(thread_pool)
+add_subdirectory(circular_queue)
 #add_library(concurrency STATIC ${source_file} ${header_file})
 #target_include_directories(concurrency PUBLIC include)
 #set_property(TARGET concurrency PROPERTY POSITION_INDEPENDENT_CODE ON)
