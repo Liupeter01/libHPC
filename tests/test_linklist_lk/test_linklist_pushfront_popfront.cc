@@ -1,0 +1,25 @@
+#include <thread>
+#include <gtest/gtest.h>
+#include <linklist_lk.hpp>
+
+TEST(LinkListLkTest, MultiThreadPushFrontPopFront) {
+
+          concurrency::LinkListLK<std::size_t> list;
+          std::thread th1([&list]() {
+                    for (std::size_t i = 0; i < 10000; ++i) {
+                              list.push_front(i);
+                    }
+                    });
+
+          std::thread th2([&list]() {
+                    std::this_thread::sleep_for(std::chrono::microseconds(2));
+                    for (std::size_t i = 0; i < 10000; ++i) {
+                              list.remove_if([i](const auto& value) { return value == i; });
+                    }
+                    });
+
+          th1.join();
+          th2.join();
+
+          EXPECT_EQ(list.size(), 0);
+}
