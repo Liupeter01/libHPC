@@ -50,13 +50,15 @@ class hazard_data {
     ReclaimNode *next{nullptr};
   };
 
+  /*reclaim linklist*/
+  template <typename _Ty> using reclaim_node = ReclaimNode<_Ty>;
+  template <typename _Ty> using reclaim_pointer = ReclaimNode<_Ty>*;
+
+  template <typename _Ty>
+  static inline std::atomic<reclaim_pointer<_Ty>> reclaim_head { nullptr };
+
   /*hazard array*/
   static hazard_pointer hazard_pointers[MAX_HAZARD_NUMBER];
-
-  /*reclaim linklist*/
-  template <typename _Ty> using reclaim_pointer = ReclaimNode<_Ty> *;
-
-  template <typename _Ty> static std::atomic<reclaim_pointer<_Ty>> reclaim_head;
 };
 
 class hazard_manager {
@@ -96,8 +98,7 @@ public:
 
   template <typename _Ty>
   static void
-  add_to_reclaim_list(details::hazard_data::node_pointer<_Ty> node) {
-    auto *new_node = new details::hazard_data::reclaim_pointer<_Ty>(node);
+  add_to_reclaim_list(details::hazard_data::reclaim_pointer<_Ty> new_node) {
     details::hazard_data::reclaim_pointer<_Ty> expected =
         hazard_data::reclaim_head<_Ty>.load();
     do {
@@ -108,7 +109,7 @@ public:
 
   template <typename _Ty>
   static void try_reclaim(details::hazard_data::node_pointer<_Ty> new_node) {
-    add_to_reclaim_list<_Ty>(new_node);
+    add_to_reclaim_list<_Ty>(new details::hazard_data::reclaim_node<_Ty>(new_node));
   }
   template <typename _Ty> static void auto_remove_from_reclaim_list() {
     // It will not influence the pervious one
@@ -168,19 +169,23 @@ public:
   ConcurrentStack() : m_size(0), m_head(nullptr) {}
 
 public:
-  std::size_t size() const { return m_size.load(); }
+  std::size_t size() const { return m_size.load(std::memory_order_acquire); }
+  const bool empty() const { return !m_size.load(std::memory_order_acquire); };
 
   void push(const _Ty &value) {
-    Node *new_node = new Node(value);
-    __push(new_node);
+    __push(new Node(value));
   }
 
   void push(_Ty &&value) {
-    Node *new_node = new Node(std::move(value));
-    __push(new_node);
+    __push(new Node(std::move(value)));
   }
 
-  std::optional<std::shared_ptr<_Ty>> pop() { return __pop_by_smart_ptr(); }
+ // std::optional<std::shared_ptr<_Ty>> pop() { return __pop_by_smart_ptr(); }
+  std::optional<std::shared_ptr<_Ty>> pop() {
+            auto res = __pop_by_hazard_ptr();
+            if (res.has_value()) --m_size;
+            return res;
+  }
 
 protected:
   void __push(Node *new_node) {
@@ -223,7 +228,7 @@ protected:
     } while (expected &&
              !m_head.compare_exchange_weak(expected, expected->next));
 
-    auto res = expected->data;
+    std::shared_ptr<_Ty> res = expected->data;
 
     hp.store(nullptr); //
 
@@ -231,7 +236,7 @@ protected:
     if (!details::hazard_manager::check_reference(expected)) {
       delete expected;
     } else {
-      details::hazard_manager::try_reclaim(expected);
+      details::hazard_manager::try_reclaim<_Ty>(expected);
     }
 
     /*clear reclaim list according to hazard pointers array*/
