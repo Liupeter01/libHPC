@@ -13,7 +13,7 @@ project(
   VERSION 0.0.1
   LANGUAGES C CXX)
 
-add_library( linklist STATIC ${source_file} ${header_file})
+add_library(linklist STATIC ${source_file} ${header_file})
 target_include_directories(linklist PUBLIC include)
-set_property(TARGET  linklist PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties( linklist PROPERTIES LINKER_LANGUAGE CXX)
+set_property(TARGET linklist PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(linklist PROPERTIES LINKER_LANGUAGE CXX)

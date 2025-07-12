@@ -1,12 +1,11 @@
 #pragma once
 #ifndef _LINKLIST_LOCKFREE_HPP_
 #define _LINKLIST_LOCKFREE_HPP_
-#include <memory>
 #include <atomic>
+#include <memory>
 
 namespace concurrency {
-          template<typename _Ty>
-          class ConcurrentLinkList;
+template <typename _Ty> class ConcurrentLinkList;
 }
 
-#endif //LINKLIST_LOCKFREE_HPP_
+#endif // LINKLIST_LOCKFREE_HPP_

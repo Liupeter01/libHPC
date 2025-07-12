@@ -13,7 +13,7 @@ project(
   VERSION 0.0.1
   LANGUAGES C CXX)
 
-add_library( queue STATIC ${source_file} ${header_file})
-target_include_directories( queue PUBLIC include)
-set_property(TARGET  queue PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties( queue PROPERTIES LINKER_LANGUAGE CXX)
+add_library(queue STATIC ${source_file} ${header_file})
+target_include_directories(queue PUBLIC include)
+set_property(TARGET queue PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(queue PROPERTIES LINKER_LANGUAGE CXX)
