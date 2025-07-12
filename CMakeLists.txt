@@ -22,7 +22,7 @@ endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
-    message(STATUS "No CMAKE_BUILD_TYPE found, Set Release build as default.")
+  message(STATUS "No CMAKE_BUILD_TYPE found, Set Release build as default.")
 endif()
 
 if("${CMAKE_BUILD_TYPE}" MATCHES "[Rr]elease")
@@ -65,5 +65,5 @@ add_subdirectory(lib/concurrency)
 set(LIBHPC_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/sparse/include
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/hpc/include
-     ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency
     CACHE INTERNAL "libHPC include dirs")

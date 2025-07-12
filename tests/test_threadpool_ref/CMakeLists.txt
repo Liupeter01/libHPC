@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
-project(test_threadpool_ref  LANGUAGES CXX C)
+project(test_threadpool_ref LANGUAGES CXX C)
 
 include(GoogleTest)
 
-if (NOT LIBHPC_BUILD_TESTING)
-    return()
+if(NOT LIBHPC_BUILD_TESTING)
+  return()
 endif()
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
