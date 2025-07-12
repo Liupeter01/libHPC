@@ -77,7 +77,7 @@ private:
 };
 
 template<typename _Ty>
-struct concurrency::ConcurrentQueueLk {
+class concurrency::ConcurrentQueueLk {
 private:
           struct Node {
                     Node() : value(nullptr), next(nullptr)
@@ -133,16 +133,6 @@ public:
 
 
 private:
-          struct Node {
-                    Node()  : value(nullptr), next(nullptr)
-                    { }
-                    Node(const _Ty& _value) 
-                              : value(std::make_shared<_Ty>(_value)), next(nullptr) 
-                    {}
-
-                    std::shared_ptr<_Ty> value;
-                    std::unique_ptr<Node> next;
-          };
 
           std::mutex m_head_mtx;
           std::mutex m_tail_mtx;
