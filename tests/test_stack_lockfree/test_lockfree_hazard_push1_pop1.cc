@@ -4,7 +4,7 @@
 
 #define NUMBER 2000000
 
-TEST(LockFreeStackTest, OneThreadForPushAndPop) {
+TEST(LockFreeHazardStackTest, OneThreadForPushAndPop) {
 
   concurrency::ConcurrentStack<std::size_t> list;
 
