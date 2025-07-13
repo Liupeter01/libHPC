@@ -62,10 +62,13 @@ public:
 
 protected:
           void __push(const ReferenceNode& node) {
-                    ReferenceNode expected = m_head.load();
+                    ReferenceNode expected = m_head.load(std::memory_order_acquire);
                     do {
                               node.node->next = expected;
-                    } while (!m_head.compare_exchange_weak(expected, node));
+                    } while (!m_head.compare_exchange_weak(expected, node,
+                              std::memory_order_release, 
+                              std::memory_order_relaxed));
+
                     m_size++;
           }
 
@@ -74,28 +77,41 @@ protected:
 
                     for (;;) {
                               /*New Thead Coming In And Update reference counter for current old_head node!*/
-                              ReferenceNode new_ref;
-                              do {
-                                        new_ref = old_head;
-                                        new_ref.increase_reference += 1;
-                              } while (!m_head.compare_exchange_weak(old_head, new_ref));
+                              ReferenceNode new_ref = __increase_ref_rmw(old_head);
 
                               Node* handle = new_ref.node;
                               if (handle == nullptr) {
                                         return std::nullopt;
                               }
 
-                              if (m_head.compare_exchange_weak(new_ref, handle->next)) {
+                              if (m_head.compare_exchange_strong(new_ref, handle->next, , std::memory_order_relaxed)) {
                                         std::shared_ptr<_Ty> res = handle->data;
                                         std::intptr_t increase = new_ref.increase_reference - 2;
-                                        if (!(handle->decrease_reference.fetch_add(increase) + increase))
+                                        if (!(handle->decrease_reference.fetch_add(increase, std::memory_order_release) + increase))
                                                   delete handle;
                                         return res;
                               }
 
-                              if (1 == handle->decrease_reference.fetch_sub(1))
+                              /*so, do you find out that we actuallt not using new_ref anymore!*/
+                              if (1 == handle->decrease_reference.fetch_sub(1, std::memory_order_relaxed)) {
+                                        (void)handle->decrease_reference.load(std::memory_order_acquire);
                                         delete handle;
+                              }
                     }
+          }
+
+private:
+          [[nodiscard]]
+          ReferenceNode 
+                    __increase_ref_rmw(ReferenceNode& old_head) {
+                    ReferenceNode new_ref;
+                    do {
+                              new_ref = old_head;
+                              new_ref.increase_reference += 1;
+                    } while (!m_head.compare_exchange_weak(old_head, new_ref,
+                              std::memory_order_acquire,
+                              std::memory_order_relaxed));
+                    return new_ref;
           }
 
 private:
