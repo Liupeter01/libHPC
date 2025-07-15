@@ -84,7 +84,7 @@ protected:
                                         return std::nullopt;
                               }
 
-                              if (m_head.compare_exchange_strong(new_ref, handle->next, , std::memory_order_relaxed)) {
+                              if (m_head.compare_exchange_strong(new_ref, handle->next, std::memory_order_relaxed)) {
                                         std::shared_ptr<_Ty> res = handle->data;
                                         std::intptr_t increase = new_ref.increase_reference - 2;
                                         if (!(handle->decrease_reference.fetch_add(increase, std::memory_order_release) + increase))
