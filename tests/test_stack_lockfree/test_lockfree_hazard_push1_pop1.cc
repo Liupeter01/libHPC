@@ -32,5 +32,5 @@ TEST(LockFreeHazardStackTest, OneThreadForPushAndPop) {
   th1.join();
   th2.join();
 
-  EXPECT_EQ(list.size(), 0);
+  EXPECT_TRUE(list.empty());
 }

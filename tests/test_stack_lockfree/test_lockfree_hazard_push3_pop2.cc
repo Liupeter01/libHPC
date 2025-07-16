@@ -52,5 +52,5 @@ TEST(LockFreeHazardStackTest, MultiThreadForPush3AndPop2) {
     }
   }
 
-  EXPECT_EQ(list.size(), 0);
+  EXPECT_TRUE(list.empty());
 }

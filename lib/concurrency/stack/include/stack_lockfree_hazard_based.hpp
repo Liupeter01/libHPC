@@ -9,7 +9,7 @@
 
 namespace concurrency {
 template <typename _Ty> class ConcurrentStack;
-template<typename _Ty> class ConcurrentStackRef;
+template <typename _Ty> class ConcurrentStackRef;
 
 namespace details {
 
@@ -53,10 +53,10 @@ class hazard_data {
 
   /*reclaim linklist*/
   template <typename _Ty> using reclaim_node = ReclaimNode<_Ty>;
-  template <typename _Ty> using reclaim_pointer = ReclaimNode<_Ty>*;
+  template <typename _Ty> using reclaim_pointer = ReclaimNode<_Ty> *;
 
   template <typename _Ty>
-  static inline std::atomic<reclaim_pointer<_Ty>> reclaim_head { nullptr };
+  static inline std::atomic<reclaim_pointer<_Ty>> reclaim_head{nullptr};
 
   /*hazard array*/
   static hazard_pointer hazard_pointers[MAX_HAZARD_NUMBER];
@@ -110,7 +110,8 @@ public:
 
   template <typename _Ty>
   static void try_reclaim(details::hazard_data::node_pointer<_Ty> new_node) {
-    add_to_reclaim_list<_Ty>(new details::hazard_data::reclaim_node<_Ty>(new_node));
+    add_to_reclaim_list<_Ty>(
+        new details::hazard_data::reclaim_node<_Ty>(new_node));
   }
   template <typename _Ty> static void auto_remove_from_reclaim_list() {
     // It will not influence the pervious one
@@ -153,6 +154,10 @@ template <typename _Ty> class concurrency::ConcurrentStack {
 
   friend class details::hazard_data;
 
+  ConcurrentStack(const ConcurrentStack &) = delete;
+  ConcurrentStack &operator=(const ConcurrentStack &) = delete;
+
+public:
   struct Node {
     Node() : data(nullptr), next(nullptr) {}
     Node(const _Ty &value)
@@ -163,37 +168,26 @@ template <typename _Ty> class concurrency::ConcurrentStack {
     Node *next;
   };
 
-  ConcurrentStack(const ConcurrentStack &) = delete;
-  ConcurrentStack &operator=(const ConcurrentStack &) = delete;
-
-public:
   ConcurrentStack() : m_size(0), m_head(nullptr) {}
   ~ConcurrentStack() { clear(); }
+
 public:
   std::size_t size() const { return m_size.load(std::memory_order_acquire); }
   const bool empty() const { return !m_size.load(std::memory_order_acquire); };
   void clear() {
-            while (!empty()) {
-                      auto res = pop();
-                      (void)res;
-            }
-            m_head = nullptr;
+    while (!empty()) {
+      auto res = pop();
+      (void)res;
+    }
+    m_head = nullptr;
   }
 
-  void push(const _Ty &value) {
-    __push(new Node(value));
-  }
+  void push(const _Ty &value) { __push(new Node(value)); }
 
-  void push(_Ty &&value) {
-    __push(new Node(std::move(value)));
-  }
+  void push(_Ty &&value) { __push(new Node(std::move(value))); }
 
- // std::optional<std::shared_ptr<_Ty>> pop() { return __pop_by_smart_ptr(); }
-  std::optional<std::shared_ptr<_Ty>> pop() {
-            auto res = __pop_by_hazard_ptr();
-            if (res.has_value()) --m_size;
-            return res;
-  }
+  // std::optional<std::shared_ptr<_Ty>> pop() { return __pop_by_smart_ptr(); }
+  std::optional<std::shared_ptr<_Ty>> pop() { return __pop_by_hazard_ptr(); }
 
 protected:
   void __push(Node *new_node) {
@@ -207,20 +201,20 @@ protected:
     m_size++;
   }
 
-  //std::optional<std::shared_ptr<_Ty>> __pop_by_smart_ptr() {
-  //  Node *expected = m_head.load();
-  //  while (true) {
-  //    if (!expected)
-  //      return std::nullopt;
-  //    Node *next_node = expected->next;
-  //    if (m_head.compare_exchange_weak(expected, next_node)) {
-  //      --m_size;
-  //      std::unique_ptr<Node> __ext_life_length(expected);
-  //      return __ext_life_length->data;
-  //    }
-  //  }
-  //  return std::nullopt;
-  //}
+  // std::optional<std::shared_ptr<_Ty>> __pop_by_smart_ptr() {
+  //   Node *expected = m_head.load();
+  //   while (true) {
+  //     if (!expected)
+  //       return std::nullopt;
+  //     Node *next_node = expected->next;
+  //     if (m_head.compare_exchange_weak(expected, next_node)) {
+  //       --m_size;
+  //       std::unique_ptr<Node> __ext_life_length(expected);
+  //       return __ext_life_length->data;
+  //     }
+  //   }
+  //   return std::nullopt;
+  // }
 
   std::optional<std::shared_ptr<_Ty>> __pop_by_hazard_ptr() {
     Node *expected = m_head.load();
@@ -236,10 +230,11 @@ protected:
     } while (expected &&
              !m_head.compare_exchange_weak(expected, expected->next));
 
-    if (!expected) return std::nullopt;
+    if (!expected)
+      return std::nullopt;
 
     std::shared_ptr<_Ty> res = expected->data;
-
+    --m_size;
     hp.store(nullptr); //
 
     /*no reference at all, delete it!*/
@@ -258,6 +253,5 @@ private:
   std::atomic<Node *> m_head{nullptr};
   std::atomic<std::size_t> m_size;
 };
-
 
 #endif //_STACK_LOCKFREE_HAZARD_HPP
