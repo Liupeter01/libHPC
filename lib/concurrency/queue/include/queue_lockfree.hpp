@@ -4,93 +4,27 @@
 #include <atomic>
 #include <memory>
 #include <optional>
+#include <type_traits>
+#include <atomic_reference_node.hpp>
 
 namespace concurrency {
 template <typename _Ty> class ConcurrentQueue;
 }
 
 template <typename _Ty> class concurrency::ConcurrentQueue {
-
-          struct ReferenceNode;
-          struct ref_counter_packed {
-                    ref_counter_packed() : thread_ref_counter(0), head_and_tail_ref_counter(2) {}
-                    std::intptr_t thread_ref_counter: 30;			//how many threads are referencing this node?
-                    unsigned int head_and_tail_ref_counter : 2;	//m_head or m_tail or next(pointer) are referencing on this!
-
-                    const bool both_zero() const{
-                              return !(thread_ref_counter && head_and_tail_ref_counter);
-                    }
-          };
-
-          struct Node {
-                    Node() : data(nullptr), inner_ref_counter() {
-                              next.node = nullptr;
-                              next.thread_ref_counter = 0;
-                    }
-                    Node(const _Ty& value) : data(std::make_unique<_Ty>(value)), inner_ref_counter() {
-                              next.node = nullptr;
-                              next.thread_ref_counter = 0;
-                    }
-                    Node(_Ty&& value) : data(std::make_unique<_Ty>(std::move(value))), inner_ref_counter() {
-                              next.node = nullptr;
-                              next.thread_ref_counter = 0;
-                    }
-
-                    ReferenceNode next;
-                    std::atomic<_Ty*> data;
-                    std::atomic<ref_counter_packed> inner_ref_counter;
-
-                    void sync_threads_ref(const std::intptr_t any_other_threads) {
-                              ref_counter_packed old_inner_ref =inner_ref_counter.load();
-                              ref_counter_packed updated_inner_ref{};
-                              do {
-                                        updated_inner_ref = old_inner_ref;
-                                        --updated_inner_ref.head_and_tail_ref_counter;
-                                        updated_inner_ref.thread_ref_counter += any_other_threads;
-                              } while (!inner_ref_counter.compare_exchange_weak(old_inner_ref, updated_inner_ref));
-                    }
-
-                    void release_curr_thread_ref() {
-                              ref_counter_packed old_inner_ref = inner_ref_counter.load();
-                              ref_counter_packed updated_inner_ref{};
-                              do {
-                                        updated_inner_ref = old_inner_ref;
-                                        --updated_inner_ref.thread_ref_counter;
-                              } while (!inner_ref_counter.compare_exchange_weak(old_inner_ref, updated_inner_ref));
-                    }
-
-                    bool remove_data() {
-                              if (inner_ref_counter.load().both_zero()) {
-                                        delete data.load();
-                                        return true;
-                              }
-                              return false;
-                    }
-          };
-
-          struct ReferenceNode {
-                    ReferenceNode() : thread_ref_counter(1), node(nullptr) {}
-                    ReferenceNode(const _Ty& value) : thread_ref_counter(1), node(new Node(value)) {}
-                    ReferenceNode(_Ty&& value) : thread_ref_counter(1), node(new Node(std::move(value))) {}
-                    std::intptr_t thread_ref_counter;	//how many threads are referencing this node?
-                    Node* node;
-          };
-
           ConcurrentQueue(const ConcurrentQueue&) = delete;
           ConcurrentQueue& operator=(const ConcurrentQueue&) = delete;
 
 public:
           ConcurrentQueue() {
-                    ReferenceNode init_node;
-                    init_node.node = new Node;
+                    ReferenceNode<_Ty> init_node;
+                    init_node.node = new Node<_Ty>;
                     init_node.thread_ref_counter = 1;
 
                     m_head.store(init_node, std::memory_order_release);
                     m_tail.store(init_node, std::memory_order_release);
           }
-          virtual ~ConcurrentQueue() {
-                    clear();
-          }
+          virtual ~ConcurrentQueue() { clear(); }
 
 public:
           void clear() {
@@ -98,125 +32,144 @@ public:
                               auto res = pop();
                               (void)res;
                     }
+                    delete m_tail.load().node;
           }
 
           const bool empty() const { 
-                    ReferenceNode old_head = m_head.load();
+                    ReferenceNode<_Ty> old_head = m_head.load();
                     return ((old_head.node == m_tail.load().node) ? true : false);
           }
 
           /*Maybe Approximate!*/
           const std::size_t size() const { return m_size; }
 
-          void push(_Ty&& value) {
-                    __push(std::make_unique<_Ty>(std::move(value)));
-          }
-          void push(const _Ty& value) {
-                    __push(std::make_unique<_Ty>(value));
-          }
+          void push(_Ty&& value) {  __push(std::make_unique<_Ty>(std::move(value)));}
+          void push(const _Ty& value) {  __push(std::make_unique<_Ty>(value)); }
 
           [[nodiscard]]
           std::optional<std::unique_ptr<_Ty>> 
-          pop() {
-                    return __pop();
-          }
+          pop() { return __pop(); }
 
 protected:
           void __push(std::unique_ptr<_Ty> value) {
-                    ReferenceNode next_node;
-                    next_node.node = new Node;
-                    next_node.thread_ref_counter = 1;
+                    ReferenceNode<_Ty> new_next;
+                    new_next.node = new Node<_Ty>;
+                    new_next.thread_ref_counter = 1;
 
-                    ReferenceNode old_tail = m_tail.load();
+                    ReferenceNode<_Ty> old_tail = m_tail.load(std::memory_order_relaxed);
                     for (;;) {
                               old_tail  = __increase_ref_rmw(m_tail, old_tail);
 
                               [[maybe_unused]] _Ty* old_data{ nullptr };
                               if (old_tail.node->data.compare_exchange_strong(old_data, value.get())) {
 
-                                        old_tail.node->next = next_node;
-
-                                        //get newest m_tail reference counter!
-                                        old_tail = m_tail.exchange(next_node);
-
-                                        /*Boardcast Current Global Threads Reference Via Atomic*/
-                                        __sync_threads_ref(old_tail);
+                                        ReferenceNode<_Ty> old_next{};
+                                        if (!old_tail.node->next.compare_exchange_strong(old_next, new_next)) {
+                                                  delete new_next.node;
+                                                  new_next = old_next;
+                                        }
 
                                         value.release();    //release resource
 
+                                        update_new_tail(old_tail, new_next);
                                         ++m_size;
                                         break;
                               }
 
-                              //other failed thread: release reference count!
-                              __release_curr_thread_ref(old_tail);
+                              ReferenceNode<_Ty>  old_next{};
+                              if (old_tail.node->next.compare_exchange_strong(old_next, new_next)) {
+                                        /*new_tail*/old_next = /*old_tail*/new_next;
+                                        new_next.node = new Node<_Ty>;     //for next iteration!
+                              }
+                              update_new_tail(old_tail, old_next);
                     }
           }
 
           [[nodiscard]]
           std::optional<std::unique_ptr<_Ty>>  __pop() {
-                    ReferenceNode old_head = m_head.load();
+                    ReferenceNode<_Ty> old_head = m_head.load(std::memory_order_relaxed);
+                    if (!old_head.node) {
+                              return std::nullopt;
+                    }
+
                     for (;;) {
                               old_head = __increase_ref_rmw(m_head, old_head);
-                              if (!old_head.node)  return std::nullopt;
 
-                              //empty?
+                              /*safty consideration, UB happened*/
+                              if (!old_head.node) {
+                                        __release_curr_thread_ref(old_head);
+                                        return std::nullopt;
+                              }
+
                               if (old_head.node == m_tail.load().node) {
                                         __release_curr_thread_ref(old_head);
                                         return std::nullopt;
                               }
 
-                              if (m_head.compare_exchange_strong(old_head, old_head.node->next)) {
-
-                                        std::unique_ptr<_Ty> res = std::unique_ptr<_Ty>(old_head.node->data.exchange(nullptr));
-
-                                        __remove_node_from_heap(old_head);
-
+                              //if old_head is wrong! then old_head.node->next.load() is also wrong!
+                              auto next = old_head.node->next.load();
+                              if (m_head.compare_exchange_strong(old_head, next)) {
+                                        _Ty* res  = old_head.node->data.exchange(nullptr);
+                                        __remove_node_from_heap(old_head);      //delete node!
                                         --m_size;
-                                        return res;
+                                        return std::unique_ptr<_Ty>(res);
                               }
 
+                              //old_head = m_head.load();
                               __release_curr_thread_ref(old_head);
                     }
           }
 
 private:
+          void update_new_tail(ReferenceNode<_Ty>& old_tail, const ReferenceNode<_Ty>& new_tail) {
+                    Node<_Ty>* backup = old_tail.node;
+                    while (!m_tail.compare_exchange_weak(old_tail, new_tail)
+                              && backup == old_tail.node);
+
+                    if (backup == old_tail.node)
+                              __sync_threads_ref(old_tail);
+                    else
+                              backup->release_curr_thread_ref();
+          }
+
           [[nodiscard]]
           static
-                    ReferenceNode
-                    __increase_ref_rmw(std::atomic<ReferenceNode>& main_node, 
-                              ReferenceNode& old) {
-                    ReferenceNode new_ref;
+                    ReferenceNode<_Ty>
+                    __increase_ref_rmw(AtomicReferenceNode<_Ty>& main_node,
+                              ReferenceNode<_Ty>& old) {
+                    ReferenceNode<_Ty> new_ref;
                     do {
                               new_ref = old;
                               new_ref.thread_ref_counter += 1;
-                    } while (!main_node.compare_exchange_weak(old, new_ref));
+                    } while (!main_node.compare_exchange_weak(old, new_ref, 
+                              std::memory_order_acquire, 
+                              std::memory_order_relaxed));
                     return new_ref;
           }
 
-          static void __sync_threads_ref(ReferenceNode& old) {
+          static void __sync_threads_ref(ReferenceNode<_Ty>& old) {
                     if (!old.node) return;
-                    const std::intptr_t any_other_threads = old.thread_ref_counter - 2;        //-2!
+                    const std::intptr_t any_other_threads = old.thread_ref_counter - 2;
                     old.node->sync_threads_ref(any_other_threads);
           }
 
-          static void __release_curr_thread_ref(ReferenceNode& old) {
+          static void __release_curr_thread_ref(ReferenceNode<_Ty>& old) {
                     if (!old.node) return;
                     old.node->release_curr_thread_ref();
           }
-          static const bool __remove_data(ReferenceNode& old) {
+          static const bool __remove_data(ReferenceNode<_Ty>& old) {
                     if (!old.node) return false;
                     return old.node->remove_data();
           }
-          static const bool __remove_node_from_heap(ReferenceNode& old) {
+          static const bool __remove_node_from_heap(ReferenceNode<_Ty>& old) {
                     __sync_threads_ref(old);
-                    return __remove_data(old);
+                    return  __remove_data(old);
           }
 
 private:
           std::atomic<std::size_t> m_size;
-          std::atomic<ReferenceNode> m_head;
-          std::atomic<ReferenceNode> m_tail;
+          AtomicReferenceNode<_Ty> m_head;
+          AtomicReferenceNode<_Ty> m_tail;
 };
 
 #endif // _QUEUE_LOCKFREE_HPP
