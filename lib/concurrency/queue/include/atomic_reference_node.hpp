@@ -8,6 +8,9 @@
 namespace concurrency {
 
           template <typename _Ty>
+          struct ReferenceNode;
+
+          template <typename _Ty>
           struct AtomicReferenceNode;
 
           template <typename _Ty> 
