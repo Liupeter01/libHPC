@@ -47,7 +47,7 @@ namespace concurrency {
 
           /*Unsafe!!*/
           template <typename _Ty>
-          struct ReferenceNode {
+          struct alignas(16) ReferenceNode {
                     std::intptr_t thread_ref_counter;	//how many threads are referencing this node?
                     Node<_Ty>* node;
           };
@@ -60,8 +60,8 @@ namespace concurrency {
           * [  PTR_BITS - 1 : 0 ] ¡ª¡ª pointer
           */
           template <typename _Ty>
-          struct AtomicReferenceNode {
-
+          struct alignas(16) AtomicReferenceNode {
+                    
                     using packed_t = std::uintptr_t;
 
 #if INTPTR_MAX == INT64_MAX
@@ -96,22 +96,22 @@ namespace concurrency {
 
                     // Atomic load into structured ReferenceNode
                     reference_node load(std::memory_order order = std::memory_order_acquire) const {
-                              packed_t val = counter.load(order);
+                              packed_t val = counter.load();
                               return { extract_ref(val), extract_ptr(val) };
                     }
 
                     // Atomic store from structured ReferenceNode
                     void store(const reference_node& rn, std::memory_order order = std::memory_order_release) {
-                              counter.store(pack(rn.node, rn.thread_ref_counter), order);
+                              counter.store(pack(rn.node, rn.thread_ref_counter));
                     }
 
                     // Helpers for direct reference counter manipulation
                     void inc_ref(std::memory_order order = std::memory_order_acq_rel) {
-                             counter.fetch_add(static_cast<packed_t>(1) << REF_SHIFT, order);
+                             counter.fetch_add(static_cast<packed_t>(1) << REF_SHIFT);
                     }
 
                     void dec_ref(std::memory_order order = std::memory_order_acq_rel) {
-                              counter.fetch_sub(static_cast<packed_t>(1) << REF_SHIFT, order);
+                              counter.fetch_sub(static_cast<packed_t>(1) << REF_SHIFT);
                     }
 
                     // Compare-and-swap with structured reference_node
@@ -120,7 +120,7 @@ namespace concurrency {
                               std::memory_order fail = std::memory_order_acquire) {
                               packed_t expected_raw = pack(expected.node, expected.thread_ref_counter);
                               packed_t desired_raw = pack(desired.node, desired.thread_ref_counter);
-                              bool ok = counter.compare_exchange_weak(expected_raw, desired_raw, success, fail);
+                              bool ok = counter.compare_exchange_weak(expected_raw, desired_raw);
                               if (!ok) {
                                         expected = { extract_ref(expected_raw), extract_ptr(expected_raw) };
                               }
@@ -132,7 +132,7 @@ namespace concurrency {
                               std::memory_order fail = std::memory_order_acquire) {
                               packed_t expected_raw = pack(expected.node, expected.thread_ref_counter);
                               packed_t desired_raw = pack(desired.node, desired.thread_ref_counter);
-                              bool ok = counter.compare_exchange_strong(expected_raw, desired_raw, success, fail);
+                              bool ok = counter.compare_exchange_strong(expected_raw, desired_raw);
                               if (!ok) {
                                         expected = { extract_ref(expected_raw), extract_ptr(expected_raw) };
                               }
