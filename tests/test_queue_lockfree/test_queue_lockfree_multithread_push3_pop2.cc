@@ -3,6 +3,7 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <random>
 
 #define NUMBER 2000000
 
@@ -21,30 +22,32 @@ TEST(LockFreeRefQueueTest, MultiThreadPush3Pop2_Stable_WithEmptyCheck) {
           producer_list.emplace_back(producer);
 
           std::thread th4([&queue, producer_number = producer_list.size()]() {
-                    thread_local std::size_t popped = 0;
+                    std::size_t popped = 0;
+                    thread_local std::mt19937 rng(std::random_device{}());
+                    thread_local std::uniform_int_distribution<int> dist(1, 10);
+
                     while (popped < NUMBER * producer_number / 2) {
-                              if (queue.empty()) {
-                                        std::this_thread::sleep_for(std::chrono::microseconds(2));
-                                        continue;
-                              }
                               auto val = queue.pop();
                               if (val.has_value()) {
                                         ++popped;
-                                        continue;
+                              }
+                              else {
+                                        std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
                               }
                     }
                     });
 
           std::thread th5([&queue, producer_number = producer_list.size()]() {
-                    thread_local std::size_t popped = 0;
+                    std::size_t popped = 0;
+                    thread_local std::mt19937 rng(std::random_device{}());
+                    thread_local std::uniform_int_distribution<int> dist(5, 15);
                     while (popped < NUMBER * producer_number / 2) {
-                              if (queue.empty()) {
-                                        std::this_thread::sleep_for(std::chrono::microseconds(2));
-                              }
                               auto val = queue.pop();
                               if (val.has_value()) {
                                         ++popped;
-                                        continue;
+                              }
+                              else {
+                                        std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
                               }
                     }
                     });

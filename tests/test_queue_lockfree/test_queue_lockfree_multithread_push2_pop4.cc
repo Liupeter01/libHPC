@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <queue_lockfree.hpp>
 #include <thread>
+#include <random>
 
 #define NUMBER 2000000
 
@@ -18,62 +19,66 @@ TEST(LockFreeRefQueueTest, MultiThreadPush2Pop4) {
   producer_list.emplace_back(producer);
 
   std::thread th4([&queue, producer_number = producer_list.size()]() {
-    thread_local std::size_t popped = 0;
-    while (popped < NUMBER * producer_number / 4) {
-              if (queue.empty()) {
-                        std::this_thread::sleep_for(std::chrono::microseconds(7));
-              }
-              auto val = queue.pop();
-              if (val.has_value()) {
-                        ++popped;
-                        continue;
-              }
-              std::this_thread::yield();
-    }
-  });
+            std::size_t popped = 0;
+            thread_local std::mt19937 rng(std::random_device{}());
+            thread_local std::uniform_int_distribution<int> dist(5, 20);
 
-  std::thread th5([&queue, producer_number = producer_list.size()]() {
-    thread_local std::size_t popped = 0;
-    while (popped < NUMBER * producer_number / 4) {
-              if (queue.empty()) {
-                        std::this_thread::sleep_for(std::chrono::microseconds(5));
-              }
-              auto val = queue.pop();
-              if (val.has_value()) {
-                        ++popped;
-                        continue;
-              }
-              std::this_thread::yield();
-    }
-  });
-
-  std::thread th6([&queue, producer_number = producer_list.size()]() {
-            thread_local std::size_t popped = 0;
             while (popped < NUMBER * producer_number / 4) {
-                      if (queue.empty()) {
-                                std::this_thread::sleep_for(std::chrono::microseconds(3));
-                      }
                       auto val = queue.pop();
                       if (val.has_value()) {
                                 ++popped;
-                                continue;
                       }
-                      std::this_thread::yield();
+                      else {
+                                std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
+                      }
+            }
+            });
+
+  std::thread th5([&queue, producer_number = producer_list.size()]() {
+            std::size_t popped = 0;
+            thread_local std::mt19937 rng(std::random_device{}());
+            thread_local std::uniform_int_distribution<int> dist(1, 8); 
+
+            while (popped < NUMBER * producer_number / 4) {
+                      auto val = queue.pop();
+                      if (val.has_value()) {
+                                ++popped;
+                      }
+                      else {
+                                std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
+                      }
+            }
+            });
+
+  std::thread th6([&queue, producer_number = producer_list.size()]() {
+            std::size_t popped = 0;
+            thread_local std::mt19937 rng(std::random_device{}());
+            thread_local std::uniform_int_distribution<int> dist(1, 17);
+
+            while (popped < NUMBER * producer_number / 4) {
+                      auto val = queue.pop();
+                      if (val.has_value()) {
+                                ++popped;
+                      }
+                      else {
+                                std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
+                      }
             }
             });
 
   std::thread th7([&queue, producer_number = producer_list.size()]() {
-            thread_local std::size_t popped = 0;
+            std::size_t popped = 0;
+            thread_local std::mt19937 rng(std::random_device{}());
+            thread_local std::uniform_int_distribution<int> dist(1, 13);
+
             while (popped < NUMBER * producer_number / 4) {
-                      if (queue.empty()) {
-                                std::this_thread::sleep_for(std::chrono::microseconds(1));
-                      }
                       auto val = queue.pop();
                       if (val.has_value()) {
                                 ++popped;
-                                continue;
                       }
-                      std::this_thread::yield();
+                      else {
+                                std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
+                      }
             }
             });
 
