@@ -5,63 +5,53 @@
 #include <chrono>
 #include <random>
 
+#define TESTCOUNT 10
 #define NUMBER 2000000
 
 TEST(LockFreeRefQueueTest, MultiThreadPush3Pop2_Stable_WithEmptyCheck) {
-          concurrency::ConcurrentQueue<int> queue;
 
-          auto producer = [&queue]() {
-                    for (std::size_t i = 0; i < NUMBER; ++i) {
-                              queue.push(i);
-                    }
-                    };
+          for (std::size_t i = 0; i < TESTCOUNT; ++i) {
+                    concurrency::ConcurrentQueue<int> queue;
 
-          std::vector<std::thread> producer_list;
-          producer_list.emplace_back(producer);
-          producer_list.emplace_back(producer);
-          producer_list.emplace_back(producer);
+                    std::mutex mtx;
+                    std::condition_variable cv;
+                    std::atomic<std::size_t> total_popped = 0;
+                    const std::size_t target = NUMBER * 3;
 
-          std::thread th4([&queue, producer_number = producer_list.size()]() {
-                    std::size_t popped = 0;
-                    thread_local std::mt19937 rng(std::random_device{}());
-                    thread_local std::uniform_int_distribution<int> dist(1, 10);
-
-                    while (popped < NUMBER * producer_number / 2) {
-                              auto val = queue.pop();
-                              if (val.has_value()) {
-                                        ++popped;
+                    auto producer = [&]() {
+                              for (std::size_t i = 0; i < NUMBER; ++i) {
+                                        queue.push(i);
+                                        cv.notify_all(); 
                               }
-                              else {
-                                        std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
+                              };
+
+                    auto consumer = [&]() {
+                              std::unique_lock<std::mutex> lock(mtx, std::defer_lock);
+                              while (true) {
+                                        if (total_popped.load() >= target) break;
+
+                                        auto val = queue.pop();
+                                        if (val.has_value()) {
+                                                  ++total_popped;
+                                        }
+                                        else {
+                                                  lock.lock();
+                                                  cv.wait_for(lock, std::chrono::microseconds(10));  
+                                                  lock.unlock();
+                                        }
                               }
-                    }
-                    });
+                              };
 
-          std::thread th5([&queue, producer_number = producer_list.size()]() {
-                    std::size_t popped = 0;
-                    thread_local std::mt19937 rng(std::random_device{}());
-                    thread_local std::uniform_int_distribution<int> dist(5, 15);
-                    while (popped < NUMBER * producer_number / 2) {
-                              auto val = queue.pop();
-                              if (val.has_value()) {
-                                        ++popped;
-                              }
-                              else {
-                                        std::this_thread::sleep_for(std::chrono::microseconds(dist(rng)));
-                              }
-                    }
-                    });
+                    std::vector<std::thread> producers;
+                    std::vector<std::thread> consumers;
+                    for (int i = 0; i < 3; ++i) 
+                              producers.emplace_back(std::thread(producer));
+                    for (int i = 0; i < 2; ++i) 
+                              consumers.emplace_back(std::thread(consumer));
 
-  
+                    for (auto& t : producers) t.join();
+                    for (auto& t : consumers) t.join();
 
-          th4.join();
-          th5.join();
-
-          for (auto& th : producer_list) {
-                    if (th.joinable()) {
-                              th.join();
-                    }
+                    EXPECT_TRUE(queue.empty());
           }
-
-          EXPECT_TRUE(queue.empty());
 }
