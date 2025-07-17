@@ -56,7 +56,7 @@ protected:
                     new_next.node = new Node<_Ty>;
                     new_next.thread_ref_counter = 1;
 
-                    ReferenceNode<_Ty> old_tail = m_tail.load(std::memory_order_relaxed);
+                    ReferenceNode<_Ty> old_tail = m_tail.load();
                     for (;;) {
                               old_tail  = __increase_ref_rmw(m_tail, old_tail);
 
@@ -87,7 +87,7 @@ protected:
 
           [[nodiscard]]
           std::optional<std::unique_ptr<_Ty>>  __pop() {
-                    ReferenceNode<_Ty> old_head = m_head.load(std::memory_order_relaxed);
+                    ReferenceNode<_Ty> old_head = m_head.load();
                     if (!old_head.node) {
                               return std::nullopt;
                     }
@@ -141,9 +141,7 @@ private:
                     do {
                               new_ref = old;
                               new_ref.thread_ref_counter += 1;
-                    } while (!main_node.compare_exchange_weak(old, new_ref, 
-                              std::memory_order_acquire, 
-                              std::memory_order_relaxed));
+                    } while (!main_node.compare_exchange_weak(old, new_ref));
                     return new_ref;
           }
 
