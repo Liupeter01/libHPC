@@ -56,14 +56,24 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
 
   using packed_t = std::uintptr_t;
 
-#if INTPTR_MAX == INT64_MAX
-  // 64-bit platform
-  static constexpr int PTR_BITS = 48; // safe for canonical addressing
-#elif INTPTR_MAX == INT32_MAX
-  // 32-bit platform
+  // Platform-specific detection
+#if defined(__x86_64__) || defined(_M_X64)
+  static constexpr int PTR_BITS = 48; // x86_64 canonical address (Linux, macOS, Windows)
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+  static constexpr bool IS_64BIT = true;
+
+# if defined(__APPLE__)
+  static constexpr int PTR_BITS = 47; // Apple M1/M2 uses 47-bit VAs with top byte ignored/PAC
+# else
+  static constexpr int PTR_BITS = 48; // Default ARM64 Linux (e.g. Raspberry Pi)
+# endif
+
+#elif defined(__i386__) || defined(_M_IX86)
   static constexpr int PTR_BITS = 32;
+
 #else
-#error "Unsupported pointer size"
+# error "Unsupported or unknown architecture"
 #endif
 
   using reference_node = ReferenceNode<_Ty>;
@@ -89,14 +99,14 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
   // Atomic load into structured ReferenceNode
   reference_node
   load(std::memory_order order = std::memory_order_acquire) const {
-    packed_t val = counter.load();
+    packed_t val = counter.load(order);
     return {extract_ref(val), extract_ptr(val)};
   }
 
   // Atomic store from structured ReferenceNode
   void store(const reference_node &rn,
              std::memory_order order = std::memory_order_release) {
-    counter.store(pack(rn.node, rn.thread_ref_counter));
+    counter.store(pack(rn.node, rn.thread_ref_counter), order);
   }
 
   // Helpers for direct reference counter manipulation
