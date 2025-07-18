@@ -17,9 +17,7 @@ struct alignas(16) ref_counter_packed {
   static constexpr packed_t HEAD_TAIL_MASK = (1 << HEAD_TAIL_BITS) - 1;
   static constexpr int THREAD_REF_SHIFT = HEAD_TAIL_BITS;
 
-  bool both_zero() const {
-    return !counter.load(std::memory_order_acquire);
-  }
+  bool both_zero() const { return !counter.load(std::memory_order_acquire); }
 
   int get_threads_ref() const {
     return static_cast<int>(counter.load(std::memory_order_acquire) >>

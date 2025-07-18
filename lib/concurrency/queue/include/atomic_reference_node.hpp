@@ -58,22 +58,24 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
 
   // Platform-specific detection
 #if defined(__x86_64__) || defined(_M_X64)
-  static constexpr int PTR_BITS = 48; // x86_64 canonical address (Linux, macOS, Windows)
+  static constexpr int PTR_BITS =
+      48; // x86_64 canonical address (Linux, macOS, Windows)
 
 #elif defined(__aarch64__) || defined(_M_ARM64)
   static constexpr bool IS_64BIT = true;
 
-# if defined(__APPLE__)
-  static constexpr int PTR_BITS = 47; // Apple M1/M2 uses 47-bit VAs with top byte ignored/PAC
-# else
+#if defined(__APPLE__)
+  static constexpr int PTR_BITS =
+      47; // Apple M1/M2 uses 47-bit VAs with top byte ignored/PAC
+#else
   static constexpr int PTR_BITS = 48; // Default ARM64 Linux (e.g. Raspberry Pi)
-# endif
+#endif
 
 #elif defined(__i386__) || defined(_M_IX86)
   static constexpr int PTR_BITS = 32;
 
 #else
-# error "Unsupported or unknown architecture"
+#error "Unsupported or unknown architecture"
 #endif
 
   using reference_node = ReferenceNode<_Ty>;
