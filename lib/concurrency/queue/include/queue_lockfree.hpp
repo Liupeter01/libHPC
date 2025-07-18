@@ -57,7 +57,7 @@ protected:
     new_next.node = new Node<_Ty>;
     new_next.thread_ref_counter = 1;
 
-    ReferenceNode<_Ty> old_tail = m_tail.load();
+    ReferenceNode<_Ty> old_tail = m_tail.load(std::memory_order_relaxed);
     for (;;) {
       old_tail = __increase_ref_rmw(m_tail, old_tail);
 
@@ -88,7 +88,7 @@ protected:
 
   [[nodiscard]]
   std::optional<std::unique_ptr<_Ty>> __pop() {
-    ReferenceNode<_Ty> old_head = m_head.load();
+    ReferenceNode<_Ty> old_head = m_head.load(std::memory_order_relaxed);
     if (!old_head.node) {
       return std::nullopt;
     }
@@ -159,11 +159,13 @@ private:
       return;
     old.node->release_curr_thread_ref();
   }
+
   static const bool __remove_data(ReferenceNode<_Ty> &old) {
     if (!old.node)
       return false;
     return old.node->remove_data();
   }
+
   static const bool __remove_node_from_heap(ReferenceNode<_Ty> &old) {
     __sync_threads_ref(old);
     return __remove_data(old);
