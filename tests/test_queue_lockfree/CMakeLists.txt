@@ -1,3 +1,4 @@
+# THose test are only logic test!
 cmake_minimum_required(VERSION 3.10)
 project(test_queue_lockfree LANGUAGES CXX C)
 
