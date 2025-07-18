@@ -14,6 +14,5 @@ set(gtest_force_shared_crt
 
 file(GLOB TEST_SOURCES *.cc)
 add_executable(test_queue_lockfree ${TEST_SOURCES})
-target_link_libraries(test_queue_lockfree PRIVATE queue
-                                                           GTest::gtest)
+target_link_libraries(test_queue_lockfree PRIVATE queue GTest::gtest)
 gtest_discover_tests(test_queue_lockfree)

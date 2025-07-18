@@ -10,7 +10,7 @@ file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 project(
   queue
-  VERSION 0.0.1
+  VERSION 1.0.0
   LANGUAGES C CXX)
 
 add_library(queue STATIC ${source_file} ${header_file})

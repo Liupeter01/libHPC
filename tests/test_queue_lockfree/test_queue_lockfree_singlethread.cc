@@ -9,25 +9,25 @@ struct MyClass {
 #define TESTCOUNT 50000
 
 TEST(LockFreeRefQueueTest, SingleThreadReferenceCounterTest) {
-          concurrency::ConcurrentQueue<MyClass> queue;
+  concurrency::ConcurrentQueue<MyClass> queue;
 
-          MyClass a;
-          a.a = 100;
+  MyClass a;
+  a.a = 100;
 
-          for (std::size_t i = 0; i < TESTCOUNT; ++i) {
-                    EXPECT_TRUE(queue.empty());
-                    queue.pop();
-                    queue.pop();
-                    queue.pop();
+  for (std::size_t i = 0; i < TESTCOUNT; ++i) {
+    EXPECT_TRUE(queue.empty());
+    queue.pop();
+    queue.pop();
+    queue.pop();
 
-                    EXPECT_TRUE(queue.empty());
-                    queue.push(a);
+    EXPECT_TRUE(queue.empty());
+    queue.push(a);
 
-                    EXPECT_FALSE(queue.empty());
-                    queue.pop();
-          }
+    EXPECT_FALSE(queue.empty());
+    queue.pop();
+  }
 
-          EXPECT_TRUE(queue.empty());
+  EXPECT_TRUE(queue.empty());
 }
 
 TEST(LockFreeRefQueueTest, SingleThreadCompleteTest) {
@@ -37,18 +37,18 @@ TEST(LockFreeRefQueueTest, SingleThreadCompleteTest) {
   a.a = 100;
 
   for (std::size_t i = 0; i < TESTCOUNT; ++i) {
-            EXPECT_TRUE(queue.empty());
-            queue.push(a);
-            queue.push(a);
-            EXPECT_FALSE(queue.empty());
-            queue.push(a);
+    EXPECT_TRUE(queue.empty());
+    queue.push(a);
+    queue.push(a);
+    EXPECT_FALSE(queue.empty());
+    queue.push(a);
 
-            queue.pop();
-            queue.pop();
-            EXPECT_FALSE(queue.empty());
-            queue.pop();
+    queue.pop();
+    queue.pop();
+    EXPECT_FALSE(queue.empty());
+    queue.pop();
 
-            EXPECT_TRUE(queue.empty());
+    EXPECT_TRUE(queue.empty());
   }
 }
 
@@ -59,17 +59,17 @@ TEST(LockFreeRefQueueTest, SingleThreadEmptyTest) {
   a.a = 100;
 
   for (std::size_t i = 0; i < TESTCOUNT; ++i) {
-            EXPECT_FALSE(queue.pop().has_value());
-            EXPECT_TRUE(queue.empty());
+    EXPECT_FALSE(queue.pop().has_value());
+    EXPECT_TRUE(queue.empty());
 
-            queue.push(a);
-            queue.push(a);
-            queue.push(a);
+    queue.push(a);
+    queue.push(a);
+    queue.push(a);
 
-            EXPECT_TRUE(queue.pop().has_value());
-            EXPECT_TRUE(queue.pop().has_value());
-            EXPECT_TRUE(queue.pop().has_value());
-            EXPECT_FALSE(queue.pop().has_value());
+    EXPECT_TRUE(queue.pop().has_value());
+    EXPECT_TRUE(queue.pop().has_value());
+    EXPECT_TRUE(queue.pop().has_value());
+    EXPECT_FALSE(queue.pop().has_value());
   }
   EXPECT_TRUE(queue.empty());
 }
