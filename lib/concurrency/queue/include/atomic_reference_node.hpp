@@ -113,21 +113,22 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
 
   // Helpers for direct reference counter manipulation
   void inc_ref(std::memory_order order = std::memory_order_acq_rel) {
-    counter.fetch_add(static_cast<packed_t>(1) << REF_SHIFT);
+    counter.fetch_add(static_cast<packed_t>(1) << REF_SHIFT, order);
   }
 
   void dec_ref(std::memory_order order = std::memory_order_acq_rel) {
-    counter.fetch_sub(static_cast<packed_t>(1) << REF_SHIFT);
+    counter.fetch_sub(static_cast<packed_t>(1) << REF_SHIFT, order);
   }
 
   // Compare-and-swap with structured reference_node
   bool
   compare_exchange_weak(reference_node &expected, const reference_node &desired,
-                        std::memory_order success = std::memory_order_acq_rel,
+                        std::memory_order success = std::memory_order_release,
                         std::memory_order fail = std::memory_order_acquire) {
     packed_t expected_raw = pack(expected.node, expected.thread_ref_counter);
     packed_t desired_raw = pack(desired.node, desired.thread_ref_counter);
-    bool ok = counter.compare_exchange_weak(expected_raw, desired_raw);
+    bool ok =
+        counter.compare_exchange_weak(expected_raw, desired_raw, success, fail);
     if (!ok) {
       expected = {extract_ref(expected_raw), extract_ptr(expected_raw)};
     }
@@ -137,11 +138,12 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
   bool
   compare_exchange_strong(reference_node &expected,
                           const reference_node &desired,
-                          std::memory_order success = std::memory_order_acq_rel,
+                          std::memory_order success = std::memory_order_release,
                           std::memory_order fail = std::memory_order_acquire) {
     packed_t expected_raw = pack(expected.node, expected.thread_ref_counter);
     packed_t desired_raw = pack(desired.node, desired.thread_ref_counter);
-    bool ok = counter.compare_exchange_strong(expected_raw, desired_raw);
+    bool ok = counter.compare_exchange_strong(expected_raw, desired_raw,
+                                              success, fail);
     if (!ok) {
       expected = {extract_ref(expected_raw), extract_ptr(expected_raw)};
     }

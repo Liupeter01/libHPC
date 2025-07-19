@@ -1,7 +1,6 @@
 #pragma once
 #ifndef _QUEUE_LOCKFREE_HPP
 #define _QUEUE_LOCKFREE_HPP
-#include <atomic>
 #include <atomic_reference_node.hpp>
 #include <memory>
 #include <optional>
@@ -28,16 +27,16 @@ public:
 
 public:
   void clear() {
-    while (!empty()) {
-      auto res = pop();
-      (void)res;
-    }
+    while (pop().has_value())
+      ;
     delete m_tail.load().node;
   }
 
   const bool empty() const {
-    ReferenceNode<_Ty> old_head = m_head.load();
-    return ((old_head.node == m_tail.load().node) ? true : false);
+    ReferenceNode<_Ty> old_head = m_head.load(std::memory_order_relaxed);
+    return ((old_head.node == m_tail.load(std::memory_order_acquire).node)
+                ? true
+                : false);
   }
 
   /*Maybe Approximate!*/
@@ -62,10 +61,14 @@ protected:
       old_tail = __increase_ref_rmw(m_tail, old_tail);
 
       [[maybe_unused]] _Ty *old_data{nullptr};
-      if (old_tail.node->data.compare_exchange_strong(old_data, value.get())) {
+      if (old_tail.node->data.compare_exchange_strong(
+              old_data, value.get(), std::memory_order_release,
+              std::memory_order_acquire)) {
 
         ReferenceNode<_Ty> old_next{};
-        if (!old_tail.node->next.compare_exchange_strong(old_next, new_next)) {
+        if (!old_tail.node->next.compare_exchange_strong(
+                old_next, new_next, std::memory_order_release,
+                std::memory_order_acquire)) {
           delete new_next.node;
           new_next = old_next;
         }
@@ -78,7 +81,9 @@ protected:
       }
 
       ReferenceNode<_Ty> old_next{};
-      if (old_tail.node->next.compare_exchange_strong(old_next, new_next)) {
+      if (old_tail.node->next.compare_exchange_strong(
+              old_next, new_next, std::memory_order_release,
+              std::memory_order_acquire)) {
         /*new_tail*/ old_next = /*old_tail*/ new_next;
         new_next.node = new Node<_Ty>; // for next iteration!
       }
@@ -102,14 +107,16 @@ protected:
         return std::nullopt;
       }
 
-      if (old_head.node == m_tail.load().node) {
+      if (old_head.node == m_tail.load(std::memory_order_acquire).node) {
         __release_curr_thread_ref(old_head);
         return std::nullopt;
       }
 
       // if old_head is wrong! then old_head.node->next.load() is also wrong!
-      auto next = old_head.node->next.load();
-      if (m_head.compare_exchange_strong(old_head, next)) {
+      auto next = old_head.node->next.load(std::memory_order_relaxed);
+      if (m_head.compare_exchange_strong(old_head, next,
+                                         std::memory_order_release,
+                                         std::memory_order_acquire)) {
         _Ty *res = old_head.node->data.exchange(nullptr);
         __remove_node_from_heap(old_head); // delete node!
         --m_size;
@@ -125,7 +132,9 @@ private:
   void update_new_tail(ReferenceNode<_Ty> &old_tail,
                        const ReferenceNode<_Ty> &new_tail) {
     Node<_Ty> *backup = old_tail.node;
-    while (!m_tail.compare_exchange_weak(old_tail, new_tail) &&
+    while (!m_tail.compare_exchange_weak(old_tail, new_tail,
+                                         std::memory_order_release,
+                                         std::memory_order_acquire) &&
            backup == old_tail.node)
       ;
 
@@ -143,7 +152,8 @@ private:
     do {
       new_ref = old;
       new_ref.thread_ref_counter += 1;
-    } while (!main_node.compare_exchange_weak(old, new_ref));
+    } while (!main_node.compare_exchange_weak(
+        old, new_ref, std::memory_order_release, std::memory_order_acquire));
     return new_ref;
   }
 
