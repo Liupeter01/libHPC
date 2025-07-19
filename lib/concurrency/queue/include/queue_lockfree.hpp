@@ -50,6 +50,15 @@ public:
     return __pop();
   }
 
+  [[nodiscard]]
+  bool try_pop(std::unique_ptr<_Ty> &out) {
+    if (auto opt = __pop(); opt.has_value()) {
+      out = std::move(opt.value());
+      return true;
+    }
+    return false;
+  }
+
 protected:
   void __push(std::unique_ptr<_Ty> value) {
     ReferenceNode<_Ty> new_next;
