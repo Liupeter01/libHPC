@@ -56,14 +56,26 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
 
   using packed_t = std::uintptr_t;
 
-#if INTPTR_MAX == INT64_MAX
-  // 64-bit platform
-  static constexpr int PTR_BITS = 48; // safe for canonical addressing
-#elif INTPTR_MAX == INT32_MAX
-  // 32-bit platform
-  static constexpr int PTR_BITS = 32;
+  // Platform-specific detection
+#if defined(__x86_64__) || defined(_M_X64)
+  static constexpr int PTR_BITS =
+      48; // x86_64 canonical address (Linux, macOS, Windows)
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+  static constexpr bool IS_64BIT = true;
+
+#if defined(__APPLE__)
+  static constexpr int PTR_BITS =
+      47; // Apple M1/M2 uses 47-bit VAs with top byte ignored/PAC
 #else
-#error "Unsupported pointer size"
+  static constexpr int PTR_BITS = 48; // Default ARM64 Linux (e.g. Raspberry Pi)
+#endif
+
+#elif defined(__i386__) || defined(_M_IX86)
+  static constexpr int PTR_BITS = 32;
+
+#else
+#error "Unsupported or unknown architecture"
 #endif
 
   using reference_node = ReferenceNode<_Ty>;
@@ -89,33 +101,34 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
   // Atomic load into structured ReferenceNode
   reference_node
   load(std::memory_order order = std::memory_order_acquire) const {
-    packed_t val = counter.load();
+    packed_t val = counter.load(order);
     return {extract_ref(val), extract_ptr(val)};
   }
 
   // Atomic store from structured ReferenceNode
   void store(const reference_node &rn,
              std::memory_order order = std::memory_order_release) {
-    counter.store(pack(rn.node, rn.thread_ref_counter));
+    counter.store(pack(rn.node, rn.thread_ref_counter), order);
   }
 
   // Helpers for direct reference counter manipulation
   void inc_ref(std::memory_order order = std::memory_order_acq_rel) {
-    counter.fetch_add(static_cast<packed_t>(1) << REF_SHIFT);
+    counter.fetch_add(static_cast<packed_t>(1) << REF_SHIFT, order);
   }
 
   void dec_ref(std::memory_order order = std::memory_order_acq_rel) {
-    counter.fetch_sub(static_cast<packed_t>(1) << REF_SHIFT);
+    counter.fetch_sub(static_cast<packed_t>(1) << REF_SHIFT, order);
   }
 
   // Compare-and-swap with structured reference_node
   bool
   compare_exchange_weak(reference_node &expected, const reference_node &desired,
-                        std::memory_order success = std::memory_order_acq_rel,
+                        std::memory_order success = std::memory_order_release,
                         std::memory_order fail = std::memory_order_acquire) {
     packed_t expected_raw = pack(expected.node, expected.thread_ref_counter);
     packed_t desired_raw = pack(desired.node, desired.thread_ref_counter);
-    bool ok = counter.compare_exchange_weak(expected_raw, desired_raw);
+    bool ok =
+        counter.compare_exchange_weak(expected_raw, desired_raw, success, fail);
     if (!ok) {
       expected = {extract_ref(expected_raw), extract_ptr(expected_raw)};
     }
@@ -125,11 +138,12 @@ template <typename _Ty> struct alignas(16) AtomicReferenceNode {
   bool
   compare_exchange_strong(reference_node &expected,
                           const reference_node &desired,
-                          std::memory_order success = std::memory_order_acq_rel,
+                          std::memory_order success = std::memory_order_release,
                           std::memory_order fail = std::memory_order_acquire) {
     packed_t expected_raw = pack(expected.node, expected.thread_ref_counter);
     packed_t desired_raw = pack(desired.node, desired.thread_ref_counter);
-    bool ok = counter.compare_exchange_strong(expected_raw, desired_raw);
+    bool ok = counter.compare_exchange_strong(expected_raw, desired_raw,
+                                              success, fail);
     if (!ok) {
       expected = {extract_ref(expected_raw), extract_ptr(expected_raw)};
     }

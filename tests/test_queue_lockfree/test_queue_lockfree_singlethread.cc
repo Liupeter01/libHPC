@@ -73,3 +73,22 @@ TEST(LockFreeRefQueueTest, SingleThreadEmptyTest) {
   }
   EXPECT_TRUE(queue.empty());
 }
+
+TEST(LockFreeRefQueueTest, SingleThreadCorrectValueTest) {
+  concurrency::ConcurrentQueue<int> queue;
+
+  for (std::size_t i = 0; i < TESTCOUNT; ++i) {
+    EXPECT_FALSE(queue.pop().has_value());
+    EXPECT_TRUE(queue.empty());
+
+    queue.push(i);
+
+    auto opt = queue.pop();
+    EXPECT_TRUE(opt.has_value());
+    EXPECT_EQ(*opt.value(), i);
+
+    EXPECT_TRUE(queue.empty());
+    EXPECT_FALSE(queue.pop().has_value());
+  }
+  EXPECT_TRUE(queue.empty());
+}

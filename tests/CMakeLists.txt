@@ -7,6 +7,22 @@ if(NOT LIBHPC_BUILD_TESTING)
   return()
 endif()
 
+if(UNIX AND NOT APPLE)
+  message(STATUS "Configuring for Linux")
+  add_compile_options(-fsanitize=address,leak)
+  add_link_options(-fsanitize=address,leak)
+elseif(APPLE)
+  message(STATUS "Configuring for macOS")
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
+  # Optional: enable leak detection (partial support)
+  set(ENV{ASAN_OPTIONS} "detect_leaks=1")
+elseif(WIN32)
+  message(WARNING "Sanitizers not yet configured for Windows")
+  # ASan for MSVC or clang-cl (more limited) You may skip or use CMake presets
+  # to control this
+endif()
+
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
