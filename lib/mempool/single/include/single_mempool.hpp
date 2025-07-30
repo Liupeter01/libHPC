@@ -7,13 +7,15 @@ extern "C" {
 #include <Singleton.hpp>
 
 namespace mempool {
-          class SingleMemoryPool : public Singleton<SingleMemoryPool> {
-                    friend class Singleton<SingleMemoryPool>;
-          public:
-                    ~SingleMemoryPool() {}
-          private:
-                    SingleMemoryPool() {}
-          };
-}
+class SingleMemoryPool : public Singleton<SingleMemoryPool> {
+  friend class Singleton<SingleMemoryPool>;
+
+public:
+  ~SingleMemoryPool() {}
+
+private:
+  SingleMemoryPool() {}
+};
+} // namespace mempool
 
 #endif //_MEMPOOL_HPP_
