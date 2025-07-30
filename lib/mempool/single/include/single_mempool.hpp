@@ -62,7 +62,7 @@ protected:
           void init(const std::size_t pool_size, const std::size_t alignment = NGX_POOL_ALIGNMENT);
 
           template<typename _Ty, typename ...Args, 
-                    std::enable_if_t<std::is_trivially_destructible_v<_Ty>, int> =0>
+                    std::enable_if_t<!std::is_trivially_destructible_v<_Ty>, int> =0>
           [[nodiscard]]
           std::shared_ptr<_Ty>
           construct(Args &&... args){
@@ -75,7 +75,7 @@ protected:
           }
 
           template<typename _Ty, typename ...Args,
-                    std::enable_if_t<!std::is_trivially_destructible_v<_Ty>, int> = 0>
+                    std::enable_if_t<std::is_trivially_destructible_v<_Ty>, int> = 0>
           [[nodiscard]]
           std::shared_ptr<_Ty>
            construct(Args &&... args) {
