@@ -31,8 +31,8 @@ endif()
 
 find_package(OpenMP REQUIRED)
 
-add_library( RadixSortCPU STATIC ${source_file} ${header_file})
-target_include_directories(  RadixSortCPU PUBLIC include)
-target_link_libraries( RadixSortCPU  PRIVATE OpenMP::OpenMP_CXX)
-set_property(TARGET   RadixSortCPU PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties(  RadixSortCPU PROPERTIES LINKER_LANGUAGE CXX)
+add_library(RadixSortCPU STATIC ${source_file} ${header_file})
+target_include_directories(RadixSortCPU PUBLIC include)
+target_link_libraries(RadixSortCPU PRIVATE OpenMP::OpenMP_CXX)
+set_property(TARGET RadixSortCPU PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(RadixSortCPU PROPERTIES LINKER_LANGUAGE CXX)

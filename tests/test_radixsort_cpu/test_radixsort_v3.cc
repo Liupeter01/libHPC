@@ -3,9 +3,10 @@
 #include <radix_sort_cpu.hpp>
 
 TEST(RadixSortPlatformCPU, TestRadixSortCPUV3) {
-          static constexpr std::size_t ARRAY_SIZE = 10000000;
-          std::vector<uint32_t> sort_test_array;
-          sort::radix::details::helper::generate_random(sort_test_array, ARRAY_SIZE);
-          sort::radix::details::radix_sort_v3(sort_test_array.data(), sort_test_array.size());
-          EXPECT_TRUE(std::is_sorted(sort_test_array.begin(), sort_test_array.end()));
+  static constexpr std::size_t ARRAY_SIZE = 10000000;
+  std::vector<uint32_t> sort_test_array;
+  sort::radix::details::helper::generate_random(sort_test_array, ARRAY_SIZE);
+  sort::radix::details::radix_sort_v3(sort_test_array.data(),
+                                      sort_test_array.size());
+  EXPECT_TRUE(std::is_sorted(sort_test_array.begin(), sort_test_array.end()));
 }

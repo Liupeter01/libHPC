@@ -39,11 +39,6 @@ if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
 endif()
 
-if(LIBHPC_BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(tests)
-endif()
-
 FetchContent_Declare(
   TBB
   GIT_REPOSITORY https://github.com/uxlfoundation/oneTBB
@@ -62,3 +57,8 @@ add_subdirectory(lib/hpc)
 add_subdirectory(lib/concurrency)
 add_subdirectory(lib/mempool)
 add_subdirectory(lib/sort)
+
+if(LIBHPC_BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
