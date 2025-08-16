@@ -9,8 +9,8 @@ file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 project(
-  SparseDS
-  VERSION 0.1.4
+  RadixSortCPU
+  VERSION 0.0.1
   LANGUAGES C CXX)
 
 if(APPLE)
@@ -31,8 +31,8 @@ endif()
 
 find_package(OpenMP REQUIRED)
 
-add_library(sparse_data_structure STATIC ${source_file} ${header_file})
-target_include_directories(sparse_data_structure PUBLIC include)
-target_link_libraries(sparse_data_structure PUBLIC TBB::tbb OpenMP::OpenMP_CXX)
-set_property(TARGET sparse_data_structure PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties(sparse_data_structure PROPERTIES LINKER_LANGUAGE CXX)
+add_library(RadixSortCPU STATIC ${source_file} ${header_file})
+target_include_directories(RadixSortCPU PUBLIC include)
+target_link_libraries(RadixSortCPU PUBLIC OpenMP::OpenMP_CXX)
+set_property(TARGET RadixSortCPU PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(RadixSortCPU PROPERTIES LINKER_LANGUAGE CXX)

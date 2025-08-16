@@ -39,11 +39,6 @@ if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
 endif()
 
-if(LIBHPC_BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(tests)
-endif()
-
 FetchContent_Declare(
   TBB
   GIT_REPOSITORY https://github.com/uxlfoundation/oneTBB
@@ -60,10 +55,10 @@ project(
 add_subdirectory(lib/sparse)
 add_subdirectory(lib/hpc)
 add_subdirectory(lib/concurrency)
+add_subdirectory(lib/mempool)
+add_subdirectory(lib/sort)
 
-# expose all public include paths to parent scope (optional)
-set(LIBHPC_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sparse/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/hpc/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency
-    CACHE INTERNAL "libHPC include dirs")
+if(LIBHPC_BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
