@@ -61,10 +61,4 @@ add_subdirectory(lib/sparse)
 add_subdirectory(lib/hpc)
 add_subdirectory(lib/concurrency)
 add_subdirectory(lib/mempool)
-
-# expose all public include paths to parent scope (optional)
-set(LIBHPC_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sparse/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/hpc/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/concurrency
-    CACHE INTERNAL "libHPC include dirs")
+add_subdirectory(lib/sort)
