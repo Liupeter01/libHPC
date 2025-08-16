@@ -128,8 +128,8 @@ struct PointerBlock : BlockInfo<PointerGridSize, false, OtherBlock> {
 
   template <typename Func> void foreach (Func &&func) {
 #pragma omp parallel for collapse(2)
-    for (std::size_t x = 0; x < PointerGridSize; ++x) {
-      for (std::size_t y = 0; y < PointerGridSize; ++y) {
+    for (long long x = 0; x < PointerGridSize; ++x) {
+      for (long long y = 0; y < PointerGridSize; ++y) {
         pointer block = m_data[x][y].load(std::memory_order_acquire);
         if (block) {
           func(x, y, *block);
