@@ -3,10 +3,6 @@ project(LIBHPC_test LANGUAGES CXX C)
 
 include(FetchContent)
 
-if(NOT LIBHPC_BUILD_TESTING)
-  return()
-endif()
-
 if(UNIX AND NOT APPLE)
   message(STATUS "Configuring for Linux")
   add_compile_options(-fsanitize=address,leak)
@@ -35,6 +31,14 @@ set(gtest_force_shared_crt
 
 FetchContent_MakeAvailable(googletest)
 
+# Universal Package
+add_subdirectory(test_hpc_benchmark)
+add_subdirectory(test_stall_lg_testsuite)
+add_subdirectory(test_overlap_pipeline_sweep_testsuite)
+add_subdirectory(test_compute_intensity_latency_sweep)
+
+# Only enable in debug mode!
+if(LIBHPC_BUILD_TESTING)
 add_subdirectory(test_hierarchical_lock)
 add_subdirectory(test_threadpool_ref)
 add_subdirectory(test_circular_queue_lk)
@@ -44,3 +48,4 @@ add_subdirectory(test_stack_lockfree)
 add_subdirectory(test_queue_lockfree)
 add_subdirectory(test_single_mempool)
 add_subdirectory(test_radixsort_cpu)
+endif()
