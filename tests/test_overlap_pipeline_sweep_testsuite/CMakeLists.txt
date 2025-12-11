@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
+# set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
 
 if(PROJECT_BINARY_DIR EQUAL PROJECT_SOURCE_DIR)
   message(
@@ -18,9 +18,8 @@ project(
 
 file(GLOB TEST_SOURCES *.cc *.cpp)
 
-add_executable(test_overlap_pipeline_sweep_testsuite ${TEST_SOURCES} )
+add_executable(test_overlap_pipeline_sweep_testsuite ${TEST_SOURCES})
 target_include_directories(test_overlap_pipeline_sweep_testsuite PUBLIC include)
 
-target_link_libraries(
-test_overlap_pipeline_sweep_testsuite
-  PUBLIC  libTransferOverlap)
+target_link_libraries(test_overlap_pipeline_sweep_testsuite
+                      PUBLIC libTransferOverlap)
