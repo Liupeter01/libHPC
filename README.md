@@ -32,3 +32,14 @@ macOS ARM is excluded to avoid degraded reliability or performance.
 
 If the Apple toolchain becomes ABI-stable again or TBB provides upstream fixes,
 support may be reconsidered in the future.
+
+## 0x02 macOS ARM Support
+
+libHPC previously worked on macOS ARM.  
+However, new Xcode toolchains explicitly mark several `libc++` ABI symbols as
+**forbidden** (Xcode even shows a “prohibited symbol” icon), including
+`std::__1::__hash_memory`, which oneTBB depends on.
+
+Since these symbols are removed at the SDK level, the issue cannot be fixed in
+libHPC or by configuration changes. As a result, macOS ARM support has been
+formally dropped.
