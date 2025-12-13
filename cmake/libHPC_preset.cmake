@@ -62,6 +62,12 @@ set(BUILD_GMOCK
     OFF
     CACHE BOOL "" FORCE)
 
+    set(TBB_TEST OFF CACHE BOOL "" FORCE)
+set(TBB_TESTS OFF CACHE BOOL "" FORCE)    
+set(TBB_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(TBB_BENCH OFF CACHE BOOL "" FORCE)
+set(TBB_BENCHMARK OFF CACHE BOOL "" FORCE)  
+
 # --------------------------------------------
 # oneTBB Split mode
 # --------------------------------------------
@@ -81,7 +87,7 @@ if(CMAKE_CUDA_COMPILER)
   set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
   # Only compile targeted arch (optional: extend here)
-  set(CMAKE_CUDA_ARCHITECTURES 86 80 75 70)
+  set(CMAKE_CUDA_ARCHITECTURES 75 86 89 90)
 
 else()
   message(WARNING "CUDA not detected, GPU module skipped.")
