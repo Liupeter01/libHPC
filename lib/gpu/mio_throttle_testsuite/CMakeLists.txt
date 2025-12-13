@@ -25,8 +25,10 @@ project(
 
 find_package(CUDA REQUIRED)
 
-add_library(  libMioThrottleTest STATIC ${source_file} ${header_file} ${CUDA_FILE})
-target_include_directories(  libMioThrottleTest PUBLIC include ${CUDA_INCLUDE_DIRS})
-target_link_libraries(  libMioThrottleTest PUBLIC libCudaUtilities)
-set_property(TARGET   libMioThrottleTest PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties(  libMioThrottleTest PROPERTIES LINKER_LANGUAGE CXX)
+add_library(libMioThrottleTest STATIC ${source_file} ${header_file}
+                                      ${CUDA_FILE})
+target_include_directories(libMioThrottleTest PUBLIC include
+                                                     ${CUDA_INCLUDE_DIRS})
+target_link_libraries(libMioThrottleTest PUBLIC libCudaUtilities)
+set_property(TARGET libMioThrottleTest PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(libMioThrottleTest PROPERTIES LINKER_LANGUAGE CXX)

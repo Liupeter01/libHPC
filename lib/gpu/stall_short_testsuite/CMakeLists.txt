@@ -25,8 +25,9 @@ project(
 
 find_package(CUDA REQUIRED)
 
-add_library(  libStallShortTest STATIC ${source_file} ${header_file} ${CUDA_FILE})
-target_include_directories(  libStallShortTest PUBLIC include ${CUDA_INCLUDE_DIRS})
-target_link_libraries(  libStallShortTest PUBLIC libCudaUtilities)
-set_property(TARGET   libStallShortTest PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties(  libStallShortTest PROPERTIES LINKER_LANGUAGE CXX)
+add_library(libStallShortTest STATIC ${source_file} ${header_file} ${CUDA_FILE})
+target_include_directories(libStallShortTest PUBLIC include
+                                                    ${CUDA_INCLUDE_DIRS})
+target_link_libraries(libStallShortTest PUBLIC libCudaUtilities)
+set_property(TARGET libStallShortTest PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(libStallShortTest PROPERTIES LINKER_LANGUAGE CXX)

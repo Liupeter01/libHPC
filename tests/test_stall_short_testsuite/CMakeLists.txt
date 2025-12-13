@@ -12,7 +12,7 @@ if(PROJECT_BINARY_DIR EQUAL PROJECT_SOURCE_DIR)
 endif()
 
 project(
- test_stall_short_testsuite
+  test_stall_short_testsuite
   VERSION 0.0.1
   LANGUAGES C CXX CUDA)
 

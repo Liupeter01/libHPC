@@ -62,11 +62,21 @@ set(BUILD_GMOCK
     OFF
     CACHE BOOL "" FORCE)
 
-    set(TBB_TEST OFF CACHE BOOL "" FORCE)
-set(TBB_TESTS OFF CACHE BOOL "" FORCE)    
-set(TBB_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(TBB_BENCH OFF CACHE BOOL "" FORCE)
-set(TBB_BENCHMARK OFF CACHE BOOL "" FORCE)  
+set(TBB_TEST
+    OFF
+    CACHE BOOL "" FORCE)
+set(TBB_TESTS
+    OFF
+    CACHE BOOL "" FORCE)
+set(TBB_EXAMPLES
+    OFF
+    CACHE BOOL "" FORCE)
+set(TBB_BENCH
+    OFF
+    CACHE BOOL "" FORCE)
+set(TBB_BENCHMARK
+    OFF
+    CACHE BOOL "" FORCE)
 
 # --------------------------------------------
 # oneTBB Split mode

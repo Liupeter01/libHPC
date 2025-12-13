@@ -12,7 +12,7 @@ if(PROJECT_BINARY_DIR EQUAL PROJECT_SOURCE_DIR)
 endif()
 
 project(
-test_mio_throttle_testsuite
+  test_mio_throttle_testsuite
   VERSION 0.0.1
   LANGUAGES C CXX CUDA)
 
