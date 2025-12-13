@@ -28,6 +28,9 @@ void run_kernel(const char *name,
   float ms; // elapsed time in milliseconds
   cudahelper::checkCuda(cudaEventElapsedTime(&ms, startEvent, stopEvent));
   printf("Time for %s execute (ms): %f\n", name, ms);
+
+  cudaEventDestroy(startEvent);
+  cudaEventDestroy(stopEvent);
 }
 
 __global__ void stall_lg_worse(int8_t *__restrict ptr1,
