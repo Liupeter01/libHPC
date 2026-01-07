@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(test_queue_lockfree LANGUAGES CXX C)
+project(test_radixsort_cpu LANGUAGES CXX C)
 
 include(GoogleTest)
 
