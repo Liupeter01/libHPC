@@ -5,6 +5,11 @@ if(PROJECT_BINARY_DIR EQUAL PROJECT_SOURCE_DIR)
     WARNING "Binary directory of CMake CANNOT be the same as Source Directory!")
 endif()
 
+if(NOT CMAKE_CUDA_COMPILER)
+  message(WARNING "CUDA not supported! Transfer Overlap Testsuite Disabled!")
+  return()
+endif()
+
 message(INFO
         "In Order To Review The Performance, You Have to use Profiling Tools")
 
