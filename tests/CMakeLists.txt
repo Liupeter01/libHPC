@@ -33,12 +33,15 @@ FetchContent_MakeAvailable(googletest)
 
 # Universal Package
 add_subdirectory(test_hpc_benchmark)
+add_subdirectory(test_radixsort_cpu)
+
 if(CMAKE_CUDA_COMPILER)
   add_subdirectory(test_stall_lg_testsuite)
   add_subdirectory(test_overlap_pipeline_sweep_testsuite)
   add_subdirectory(test_compute_intensity_latency_sweep)
-    add_subdirectory(test_mio_throttle_testsuite)
+  add_subdirectory(test_mio_throttle_testsuite)
   add_subdirectory(test_stall_short_testsuite)
+  add_subdirectory(test_radixsort_gpu)
 endif()
 
 # Only enable in debug mode!
@@ -51,5 +54,4 @@ if(LIBHPC_BUILD_TESTING)
   add_subdirectory(test_stack_lockfree)
   add_subdirectory(test_queue_lockfree)
   add_subdirectory(test_single_mempool)
-  add_subdirectory(test_radixsort_cpu)
 endif()

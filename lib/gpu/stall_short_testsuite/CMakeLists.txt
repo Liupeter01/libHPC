@@ -9,7 +9,7 @@ message(INFO
         "In Order To Review The Performance, You Have to use Profiling Tools")
 
 if(NOT CMAKE_CUDA_COMPILER)
-  message(WARNING "CUDA not supported! Stall LG Testsuite Disabled!")
+  message(WARNING "CUDA not supported! Stall Short Testsuite Disabled!")
   return()
 endif()
 
