@@ -16,7 +16,7 @@ endif()
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
-set(CUDA_FILE include/cuda_radix_sort.cuh src/cuda_radix_sort.cu )
+set(CUDA_FILE include/cuda_radix_sort.cuh src/cuda_radix_sort.cu)
 
 project(
   RadixSortGPU
@@ -27,6 +27,6 @@ find_package(CUDA REQUIRED)
 
 add_library(RadixSortGPU STATIC ${source_file} ${header_file} ${CUDA_FILE})
 target_include_directories(RadixSortGPU PUBLIC include ${CUDA_INCLUDE_DIRS})
-target_link_libraries(RadixSortGPU PUBLIC libCudaUtilities )
+target_link_libraries(RadixSortGPU PUBLIC libCudaUtilities)
 set_property(TARGET RadixSortGPU PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(RadixSortGPU PROPERTIES LINKER_LANGUAGE CXX)
