@@ -42,6 +42,7 @@ if(CMAKE_CUDA_COMPILER)
   add_subdirectory(test_mio_throttle_testsuite)
   add_subdirectory(test_stall_short_testsuite)
   add_subdirectory(test_radixsort_gpu)
+  add_subdirectory(test_gpu_benchmark)
 endif()
 
 # Only enable in debug mode!
