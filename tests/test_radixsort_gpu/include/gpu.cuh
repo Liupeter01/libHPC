@@ -3,15 +3,11 @@
 #define _GPU_CUH_
 #include <cuda.h>
 #include <cudaUtils.cuh>
-#include <cuda_radix_sort.cuh>
+#include <cuda_local_histogram.cuh>
 #include <cuda_runtime.h>
 #include <gtest/gtest.h>
 #include <thrust/device_vector.h>
 #include <vector>
-
-void gpu_local_count_func(uint32_t *d_in, size_t N,
-                          std::vector<uint32_t> &out_local_count);
-void gpu_global_base(uint32_t *d_in, size_t N, std::vector<uint32_t> &out_base);
 
 template <size_t BlockSize = 32>
 void gpu_local_offset_func(uint32_t *d_in, size_t N,
