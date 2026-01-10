@@ -16,7 +16,18 @@ endif()
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
-set(CUDA_FILE include/cuda_radix_sort.cuh src/cuda_radix_sort.cu)
+set(CUDA_FILE
+    include/cuda_radix_sort.cuh
+    src/cuda_radix_sort.cu
+    include/cuda_radix_sort_v1.cuh
+    src/cuda_radix_sort_v1.cu
+    include/cuda_radix_sort_v2.cuh
+    src/cuda_radix_sort_v2.cu
+    include/cuda_radix_sort_v3.cuh
+    src/cuda_radix_sort_v3.cu
+    include/cuda_local_histogram.cuh
+    include/cuda_radix_scatter.cuh
+    include/cuda_global_reduce_from_local.cuh)
 
 project(
   RadixSortGPU
