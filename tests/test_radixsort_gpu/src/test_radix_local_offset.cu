@@ -72,4 +72,5 @@ TEST_P(RadixLocalOffsetTest, LocalOffsetIgnoresPadding) {
 }
 
 INSTANTIATE_TEST_SUITE_P(RadixEdgeCases, RadixLocalOffsetTest,
-                         ::testing::Values(1, 111, 256, 297, 500, 512,  3987, 1024 * 256 + 57));
+                         ::testing::Values(1, 111, 256, 297, 500, 512, 3987,
+                                           1024 * 256 + 57));

@@ -14,15 +14,15 @@
 #include <vector>
 
 namespace sort {
-          namespace gpu {
-                    namespace radix {
-                              namespace details {
-                                        static constexpr inline std::intptr_t constexpr_log2(std::intptr_t n) {
-                                                  return (n < 2) ? 0 : 1 + constexpr_log2(n >> 1);
-                                        }
-                              } // namespace details
-                    } // namespace radix
-          } // namespace gpu
+namespace gpu {
+namespace radix {
+namespace details {
+static constexpr inline std::intptr_t constexpr_log2(std::intptr_t n) {
+  return (n < 2) ? 0 : 1 + constexpr_log2(n >> 1);
+}
+} // namespace details
+} // namespace radix
+} // namespace gpu
 } // namespace sort
 
 #endif

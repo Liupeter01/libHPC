@@ -4,17 +4,17 @@
 #include <common.hpp>
 
 namespace sort {
-          namespace gpu {
-                    namespace radix {
-                              namespace details {
-                                        namespace v1 {
+namespace gpu {
+namespace radix {
+namespace details {
+namespace v1 {
 
-                                                  void __radix_sort_v1(
-                                                            std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>>& input);
-                                        } // namespace v1
-                              } // namespace details
-                    } // namespace radix
-          } // namespace gpu
+void __radix_sort_v1(
+    std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> &input);
+} // namespace v1
+} // namespace details
+} // namespace radix
+} // namespace gpu
 } // namespace sort
 
 #endif

@@ -14,7 +14,7 @@ file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 set(CUDA_FILE src/test_radix_global_base.cu src/test_radix_local_count.cu
-              src/test_radix_local_offset.cu include/gpu.cuh src/gpu.cu)
+              src/test_radix_local_offset.cu include/gpu.cuh)
 
 project(
   test_radixsort_gpu

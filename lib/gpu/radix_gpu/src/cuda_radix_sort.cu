@@ -9,9 +9,7 @@ namespace details {
 
 __global__ void kernel_startup() { (void)threadIdx.x; }
 
-void __kernel_startup() {
-  kernel_startup<<<1,1>>>();
-}
+void __kernel_startup() { kernel_startup<<<1, 1>>>(); }
 } // namespace details
 } // namespace radix
 } // namespace gpu

@@ -11,15 +11,15 @@ __global__ void kernel_transpose(_Ty *__restrict out, const _Ty *__restrict in,
                                  const uint32_t width, const uint32_t height) {
 
   // before transpose
-          const uint32_t x = blockIdx.x * BlockSize + threadIdx.x;
-          const uint32_t y = blockIdx.y * BlockSize + threadIdx.y;
+  const uint32_t x = blockIdx.x * BlockSize + threadIdx.x;
+  const uint32_t y = blockIdx.y * BlockSize + threadIdx.y;
 
   __shared__ volatile _Ty tile[BlockSize][BlockSize + 1];
 
   tile[threadIdx.y][threadIdx.x] = _Ty(0);
   __syncthreads();
 
-  if (x <width && y < height) {
+  if (x < width && y < height) {
     tile[threadIdx.y][threadIdx.x] = in[y * width + x];
   }
   __syncthreads();
