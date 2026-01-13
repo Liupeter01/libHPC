@@ -29,6 +29,30 @@ inline void throwCudaError(const cudaError_t e, const char *file, int line) {
 #define GLOBAL_LINEAR_TID util::global_linear_tid()
 #define GLOBAL_LINEAR_STRIDE util::global_linear_stride()
 
+template <bool Exclusive>
+__device__  uint32_t warp_scan(uint32_t v, int lane) {
+          // inclusive scan first
+#pragma unroll
+          for (int off = 1; off < 32; off <<= 1) {
+                    uint32_t n = __shfl_up_sync(0xffffffffu, v, off, 32);
+                    if (lane >= off)
+                              v += n;
+          }
+
+          if constexpr (Exclusive) {
+                    // convert inclusive -> exclusive
+                    uint32_t prev = __shfl_up_sync(0xffffffffu, v, 1, 32);
+                    return (lane == 0) ? 0u : prev;
+          }
+          else {
+                    return v; // inclusive
+          }
+}
+
+__device__  uint32_t warp_reduce_sum(uint32_t v);
+__device__ uint32_t warp_exclusive_scan(uint32_t v, int lane);
+__device__ uint32_t warp_inclusive_scan(uint32_t v, int lane);
+
 template <typename Func>
 __global__ void parallel_for(std::size_t size, Func func) {
   const auto tid = GLOBAL_LINEAR_TID;
@@ -42,6 +66,8 @@ template <std::size_t N, typename Func>
 __global__ void parallel_for(Func func) {
   parallel_for(N, func);
 }
+
+__global__ void kernel_clear_u32(uint32_t* __restrict ptr, std::size_t n);
 
 // Convenience function for checking CUDA runtime API results
 // can be wrapped around any runtime API call. No-op in release builds.
