@@ -10,6 +10,10 @@
 
 class RadixGlobalBaseTest : public ::testing::TestWithParam<size_t> {};
 
+TEST(RadixGlobalBaseTest, KernelStartupOnly) {
+          ::sort::gpu::radix::details::__kernel_startup();
+}
+
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1) {
   size_t N = GetParam();
 
@@ -65,6 +69,10 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev2) {
@@ -132,6 +140,11 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev2) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev3) {
@@ -258,6 +271,13 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev3) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
+  reduce_a.clear();
+  reduce_b.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1IgnoresPadding) {
@@ -318,6 +338,10 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev2IgnoresPadding) {
@@ -388,6 +412,11 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev2IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev3IgnoresPadding) {
@@ -517,6 +546,13 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev3IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
+  reduce_a.clear();
+  reduce_b.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev1) {
@@ -573,6 +609,9 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev1) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+  d_global.clear();
+  d_local.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev2) {
@@ -639,6 +678,13 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev2) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
+  reduce_a.clear();
+  reduce_b.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev3) {
@@ -764,6 +810,13 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev3) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
+  reduce_a.clear();
+  reduce_b.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev1IgnoresPadding) {
@@ -823,6 +876,10 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev1IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev2IgnoresPadding) {
@@ -892,6 +949,13 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev2IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
+  reduce_a.clear();
+  reduce_b.clear();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev3IgnoresPadding) {
@@ -1020,8 +1084,14 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev3IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
+
+  d_global.clear();
+  d_local.clear();
+  d_localT.clear();
+  reduce_a.clear();
+  reduce_b.clear();
 }
 
 INSTANTIATE_TEST_SUITE_P(RadixEdgeCases, RadixGlobalBaseTest,
                          ::testing::Values(1, 111, 256, 297, 500, 512, 3987,
-                                           1024 * 256 + 57));
+                                           1024 * 256 + 57, 100000000));
