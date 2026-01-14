@@ -43,6 +43,9 @@ if(CMAKE_CUDA_COMPILER)
   add_subdirectory(test_stall_short_testsuite)
   add_subdirectory(test_radixsort_gpu)
   add_subdirectory(test_gpu_benchmark)
+    add_subdirectory(test_radixsort_gpu_global_offset)
+      add_subdirectory(test_radixsort_gpu_local_count)
+        add_subdirectory(test_radixsort_gpu_local_offset)
 endif()
 
 # Only enable in debug mode!
