@@ -362,4 +362,4 @@ TEST_P(RadixLocalOffsetTest, GlobalLocalHierarchicalScanV1IgnoresPadding) {
 
 INSTANTIATE_TEST_SUITE_P(RadixEdgeCases, RadixLocalOffsetTest,
                          ::testing::Values(1, 111, 256, 297, 500, 512, 3987,
-                                           1024 * 256 + 57,  100000000));
+                                           1024 * 256 + 57, 290'000'000));
