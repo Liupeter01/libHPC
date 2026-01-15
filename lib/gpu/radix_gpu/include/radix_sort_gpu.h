@@ -5,6 +5,7 @@
 #include <cudaAllocator.hpp>
 #include <cuda_radix_sort.cuh>
 #include <random>
+#include <chrono>
 
 namespace sort {
 namespace gpu {

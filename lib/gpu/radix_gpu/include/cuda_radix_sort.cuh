@@ -5,6 +5,7 @@
 #include <cuda_radix_sort_v1.cuh>
 #include <cuda_radix_sort_v2.cuh>
 #include <cuda_radix_sort_v3.cuh>
+#include <cuda_radix_sort_v4.cuh>
 
 namespace sort {
 namespace gpu {
