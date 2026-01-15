@@ -2,6 +2,7 @@
 #ifndef _RADIX_SORT_GPU_H_
 #define _RADIX_SORT_GPU_H_
 #include <algorithm>
+#include <chrono>
 #include <cudaAllocator.hpp>
 #include <cuda_radix_sort.cuh>
 #include <random>

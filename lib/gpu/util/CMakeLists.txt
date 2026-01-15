@@ -9,7 +9,7 @@ file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 set(CUDA_HEADER include/cudaHelper.cuh include/linearUtils.cuh
-                src/linearUtils.cu include/cudaUtils.cuh)
+                src/linearUtils.cu include/cudaUtils.cuh src/cudaHelper.cu)
 
 find_package(CUDA REQUIRED)
 
@@ -24,3 +24,5 @@ target_include_directories(libCudaUtilities PUBLIC include ${CUDA_INCLUDE_DIRS})
 target_link_libraries(libCudaUtilities PUBLIC CUDA::cudart)
 set_property(TARGET libCudaUtilities PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(libCudaUtilities PROPERTIES LINKER_LANGUAGE CXX)
+target_compile_options(libCudaUtilities
+                       PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
