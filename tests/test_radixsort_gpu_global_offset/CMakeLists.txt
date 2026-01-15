@@ -13,7 +13,7 @@ set(gtest_force_shared_crt
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
-set(CUDA_FILE  src/test_radix_global_base.cu include/gpu.cuh )
+set(CUDA_FILE src/test_radix_global_base.cu include/gpu.cuh)
 
 project(
   test_radixsort_gpu_global_offset
@@ -22,11 +22,15 @@ project(
 
 find_package(CUDA REQUIRED)
 
-add_executable(test_radixsort_gpu_global_offset ${source_file} ${header_file} ${CUDA_FILE})
-target_include_directories(test_radixsort_gpu_global_offset PUBLIC include
-                                                     ${CUDA_INCLUDE_DIRS})
-target_link_libraries(test_radixsort_gpu_global_offset PRIVATE RadixSortCPU RadixSortGPU
-                                                 libCudaUtilities GTest::gtest)
-set_property(TARGET test_radixsort_gpu_global_offset PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties(test_radixsort_gpu_global_offset PROPERTIES LINKER_LANGUAGE CXX)
+add_executable(test_radixsort_gpu_global_offset ${source_file} ${header_file}
+                                                ${CUDA_FILE})
+target_include_directories(test_radixsort_gpu_global_offset
+                           PUBLIC include ${CUDA_INCLUDE_DIRS})
+target_link_libraries(
+  test_radixsort_gpu_global_offset PRIVATE RadixSortCPU RadixSortGPU
+                                           libCudaUtilities GTest::gtest)
+set_property(TARGET test_radixsort_gpu_global_offset
+             PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(test_radixsort_gpu_global_offset
+                      PROPERTIES LINKER_LANGUAGE CXX)
 gtest_discover_tests(test_radixsort_gpu_global_offset)

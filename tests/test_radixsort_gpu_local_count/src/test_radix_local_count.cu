@@ -9,7 +9,7 @@
 class RadixLocalCountTest : public ::testing::TestWithParam<size_t> {};
 
 TEST(RadixLocalCountTest, KernelStartupOnly) {
-          ::sort::gpu::radix::details::__kernel_startup();
+  ::sort::gpu::radix::details::__kernel_startup();
 }
 
 TEST_P(RadixLocalCountTest, LocalCountV1MatchesCPU) {
@@ -53,7 +53,6 @@ TEST_P(RadixLocalCountTest, LocalCountV1MatchesCPU) {
           << "Mismatch at N=" << N << " block=" << b << " bin=" << bin;
     }
   }
-
 
   d_local.clear();
 }
@@ -147,7 +146,6 @@ TEST_P(RadixLocalCountTest, LocalCountV1IgnoresPadding) {
     }
   }
 
-
   d_local.clear();
 }
 
@@ -199,5 +197,5 @@ TEST_P(RadixLocalCountTest, LocalCountV2IgnoresPadding) {
 }
 
 INSTANTIATE_TEST_SUITE_P(RadixEdgeCases, RadixLocalCountTest,
-          ::testing::Values(1, 111, 256, 297, 500, 512, 3987,
-                    1024 * 256 + 57, 100000000));
+                         ::testing::Values(1, 111, 256, 297, 500, 512, 3987,
+                                           1024 * 256 + 57, 100000000));

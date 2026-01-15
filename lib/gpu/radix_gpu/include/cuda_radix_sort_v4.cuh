@@ -10,7 +10,7 @@ namespace details {
 namespace v4 {
 void __radix_sort_v4(
     std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> &input);
-} // namespace v3
+} // namespace v4
 } // namespace details
 } // namespace radix
 } // namespace gpu

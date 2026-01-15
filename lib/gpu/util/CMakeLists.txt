@@ -24,4 +24,5 @@ target_include_directories(libCudaUtilities PUBLIC include ${CUDA_INCLUDE_DIRS})
 target_link_libraries(libCudaUtilities PUBLIC CUDA::cudart)
 set_property(TARGET libCudaUtilities PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(libCudaUtilities PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_options(libCudaUtilities PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
+target_compile_options(libCudaUtilities
+                       PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)

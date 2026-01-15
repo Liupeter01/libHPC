@@ -25,14 +25,13 @@ set(CUDA_FILE
     src/cuda_radix_sort_v2.cu
     include/cuda_radix_sort_v3.cuh
     src/cuda_radix_sort_v3.cu
-        include/cuda_radix_sort_v4.cuh
+    include/cuda_radix_sort_v4.cuh
     src/cuda_radix_sort_v4.cu
     include/cuda_local_histogram.cuh
     include/cuda_radix_scatter.cuh
     include/cuda_global_reduce_from_local.cuh
-
-         include/cuda_hierarchical_exclusive_scan_localT_1024.cuh
-         src/cuda_hierarchical_exclusive_scan_localT_1024.cu)
+    include/cuda_hierarchical_exclusive_scan_localT_1024.cuh
+    src/cuda_hierarchical_exclusive_scan_localT_1024.cu)
 
 project(
   RadixSortGPU
@@ -46,4 +45,5 @@ target_include_directories(RadixSortGPU PUBLIC include ${CUDA_INCLUDE_DIRS})
 target_link_libraries(RadixSortGPU PUBLIC libCudaUtilities)
 set_property(TARGET RadixSortGPU PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(RadixSortGPU PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_options(RadixSortGPU PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
+target_compile_options(RadixSortGPU
+                       PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)

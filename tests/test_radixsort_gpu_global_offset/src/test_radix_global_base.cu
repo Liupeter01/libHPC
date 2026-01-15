@@ -11,7 +11,7 @@
 class RadixGlobalBaseTest : public ::testing::TestWithParam<size_t> {};
 
 TEST(RadixGlobalBaseTest, KernelStartupOnly) {
-          ::sort::gpu::radix::details::__kernel_startup();
+  ::sort::gpu::radix::details::__kernel_startup();
 }
 
 TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1) {
@@ -69,7 +69,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();
@@ -140,7 +139,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev2) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();
@@ -272,7 +270,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev3) {
         << "Mismatch at N=" << N << " bin=" << i;
   }
 
-
   d_global.clear();
   d_local.clear();
   d_localT.clear();
@@ -338,7 +335,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev1IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();
@@ -412,7 +408,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev2IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();
@@ -547,7 +542,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv1GlobalReducev3IgnoresPadding) {
         << "Mismatch at N=" << N << " bin=" << i;
   }
 
-
   d_global.clear();
   d_local.clear();
   d_localT.clear();
@@ -678,7 +672,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev2) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();
@@ -811,7 +804,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev3) {
         << "Mismatch at N=" << N << " bin=" << i;
   }
 
-
   d_global.clear();
   d_local.clear();
   d_localT.clear();
@@ -876,7 +868,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev1IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();
@@ -949,7 +940,6 @@ TEST_P(RadixGlobalBaseTest, Histogramv2GlobalReducev2IgnoresPadding) {
     ASSERT_EQ(cpu_base[i], gpu_base[i])
         << "Mismatch at N=" << N << " bin=" << i;
   }
-
 
   d_global.clear();
   d_local.clear();

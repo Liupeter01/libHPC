@@ -10,8 +10,12 @@ TEST(RadixSortPlatformGPU, TestRadixSortGPUv3) {
       sort_test_array;
   auto now = std::chrono::high_resolution_clock::now();
   ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
-            ARRAY_SIZE);
-  std::cout << "Fill Data Time = " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count() << "ms\n";
+                                                       ARRAY_SIZE);
+  std::cout << "Fill Data Time = "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::high_resolution_clock::now() - now)
+                   .count()
+            << "ms\n";
   ::sort::gpu::radix::details::v3::__radix_sort_v3(sort_test_array);
   EXPECT_TRUE(std::is_sorted(sort_test_array.begin(), sort_test_array.end()));
 }
