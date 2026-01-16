@@ -42,7 +42,7 @@ find_package(CUDA REQUIRED)
 
 add_library(RadixSortGPU STATIC ${source_file} ${header_file} ${CUDA_FILE})
 target_include_directories(RadixSortGPU PUBLIC include ${CUDA_INCLUDE_DIRS})
-target_link_libraries(RadixSortGPU PUBLIC libCudaUtilities)
+target_link_libraries(RadixSortGPU PUBLIC libCudaUtilities CUDA::cudart)
 set_property(TARGET RadixSortGPU PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(RadixSortGPU PROPERTIES LINKER_LANGUAGE CXX)
 target_compile_options(RadixSortGPU
