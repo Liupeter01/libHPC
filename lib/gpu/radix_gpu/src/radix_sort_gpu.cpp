@@ -23,8 +23,8 @@ void generate_random(
 
 void radix_sort(
     std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> &input) {
-  nvtxRangePushA("RadixSortGPUv1");
-  ::sort::gpu::radix::details::v1::__radix_sort_v1(input);
+  nvtxRangePushA("RadixSortGPU");
+  ::sort::gpu::radix::details::v4::__radix_sort_v4(input);
   nvtxRangePop();
 }
 } // namespace radix

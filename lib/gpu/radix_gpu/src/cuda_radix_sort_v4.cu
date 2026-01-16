@@ -243,7 +243,9 @@ static inline void radix_sort_v4(
 
 void __radix_sort_v4(
     std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> &input) {
+          nvtxRangePushA("radix_sort_v4");
   radix_sort_v4<256, 32>(input);
+  nvtxRangePop();
 }
 
 } // namespace v4
