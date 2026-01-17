@@ -8,48 +8,48 @@
 #include <radix_sort_gpu.h>
 #include <vector>
 
-//static constexpr std::size_t ARRAY_SIZE = 100000000;
+// static constexpr std::size_t ARRAY_SIZE = 100000000;
 static constexpr std::size_t ARRAY_SIZE = 500'000'000;
 
-//static void BM_gpu_radix_sort_v1(benchmark::State &bm) {
-//  sort_test_array.clear();
-//  for (auto _ : bm) {
-//    ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
-//                                                         ARRAY_SIZE);
-//    ::sort::gpu::radix::details::v1::__radix_sort_v1(sort_test_array);
-//    benchmark::DoNotOptimize(sort_test_array);
-//  }
-//}
+// static void BM_gpu_radix_sort_v1(benchmark::State &bm) {
+//   sort_test_array.clear();
+//   for (auto _ : bm) {
+//     ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
+//                                                          ARRAY_SIZE);
+//     ::sort::gpu::radix::details::v1::__radix_sort_v1(sort_test_array);
+//     benchmark::DoNotOptimize(sort_test_array);
+//   }
+// }
 //
-//static void BM_gpu_radix_sort_v2(benchmark::State &bm) {
-//  sort_test_array.clear();
-//  for (auto _ : bm) {
-//    ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
-//                                                         ARRAY_SIZE);
-//    ::sort::gpu::radix::details::v2::__radix_sort_v2(sort_test_array);
-//    benchmark::DoNotOptimize(sort_test_array);
-//  }
-//}
+// static void BM_gpu_radix_sort_v2(benchmark::State &bm) {
+//   sort_test_array.clear();
+//   for (auto _ : bm) {
+//     ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
+//                                                          ARRAY_SIZE);
+//     ::sort::gpu::radix::details::v2::__radix_sort_v2(sort_test_array);
+//     benchmark::DoNotOptimize(sort_test_array);
+//   }
+// }
 //
-//static void BM_gpu_radix_sort_v3(benchmark::State &bm) {
-//  sort_test_array.clear();
-//  for (auto _ : bm) {
-//    ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
-//                                                         ARRAY_SIZE);
-//    ::sort::gpu::radix::details::v3::__radix_sort_v3(sort_test_array);
-//    benchmark::DoNotOptimize(sort_test_array);
-//  }
-//}
+// static void BM_gpu_radix_sort_v3(benchmark::State &bm) {
+//   sort_test_array.clear();
+//   for (auto _ : bm) {
+//     ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
+//                                                          ARRAY_SIZE);
+//     ::sort::gpu::radix::details::v3::__radix_sort_v3(sort_test_array);
+//     benchmark::DoNotOptimize(sort_test_array);
+//   }
+// }
 //
-//static void BM_gpu_radix_sort_v4(benchmark::State &bm) {
-//  sort_test_array.clear();
-//  for (auto _ : bm) {
-//    ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
-//                                                         ARRAY_SIZE);
-//    ::sort::gpu::radix::details::v4::__radix_sort_v4(sort_test_array);
-//    benchmark::DoNotOptimize(sort_test_array);
-//  }
-//}
+// static void BM_gpu_radix_sort_v4(benchmark::State &bm) {
+//   sort_test_array.clear();
+//   for (auto _ : bm) {
+//     ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
+//                                                          ARRAY_SIZE);
+//     ::sort::gpu::radix::details::v4::__radix_sort_v4(sort_test_array);
+//     benchmark::DoNotOptimize(sort_test_array);
+//   }
+// }
 
 // BENCHMARK(BM_gpu_radix_sort_v1);
 // BENCHMARK(BM_gpu_radix_sort_v2);
@@ -58,7 +58,8 @@ static constexpr std::size_t ARRAY_SIZE = 500'000'000;
 // BENCHMARK_MAIN();
 
 void v1() {
-          std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> sort_test_array;
+  std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>>
+      sort_test_array;
   std::cout << "Generate\n";
   ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
                                                        ARRAY_SIZE);
@@ -68,7 +69,8 @@ void v1() {
 }
 
 void v2() {
-          std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> sort_test_array;
+  std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>>
+      sort_test_array;
   std::cout << "Generate\n";
   ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
                                                        ARRAY_SIZE);
@@ -78,7 +80,8 @@ void v2() {
 }
 
 void v3() {
-          std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> sort_test_array;
+  std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>>
+      sort_test_array;
   std::cout << "Generate\n";
   ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
                                                        ARRAY_SIZE);
@@ -88,7 +91,8 @@ void v3() {
 }
 
 void v4() {
-          std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>> sort_test_array;
+  std::vector<uint32_t, CudaAllocator<uint32_t, CudaMemManaged>>
+      sort_test_array;
   std::cout << "Generate\n";
   ::sort::gpu::radix::details::helper::generate_random(sort_test_array,
                                                        ARRAY_SIZE);
@@ -113,8 +117,8 @@ void radix_sort_test() {
   v4();
   std::cout << "Time = "
             << std::chrono::duration_cast<std::chrono::milliseconds>(
-                      std::chrono::high_resolution_clock::now() - now)
-            .count()
+                   std::chrono::high_resolution_clock::now() - now)
+                   .count()
             << "ms\n";
 }
 
