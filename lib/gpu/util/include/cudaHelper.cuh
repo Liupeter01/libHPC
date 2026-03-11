@@ -29,27 +29,51 @@ inline void throwCudaError(const cudaError_t e, const char *file, int line) {
 #define GLOBAL_LINEAR_TID util::global_linear_tid()
 #define GLOBAL_LINEAR_STRIDE util::global_linear_stride()
 
-template <bool Exclusive> __device__ uint32_t warp_scan(uint32_t v, int lane) {
+template <bool Exclusive>
+__device__ __forceinline__ uint32_t warp_scan(uint32_t v, int lane) {
   // inclusive scan first
+#ifdef __CUDACC__
 #pragma unroll
+#endif
   for (int off = 1; off < 32; off <<= 1) {
-    uint32_t n = __shfl_up_sync(0xffffffffu, v, off, 32);
+    uint32_t n{};
+#ifdef __CUDACC__
+    n = __shfl_up_sync(0xffffffffu, v, off, 32);
+#endif
     if (lane >= off)
       v += n;
   }
 
   if constexpr (Exclusive) {
     // convert inclusive -> exclusive
-    uint32_t prev = __shfl_up_sync(0xffffffffu, v, 1, 32);
+    uint32_t prev{};
+#ifdef __CUDACC__
+    prev = __shfl_up_sync(0xffffffffu, v, 1, 32);
+#endif
     return (lane == 0) ? 0u : prev;
   } else {
     return v; // inclusive
   }
 }
 
-__device__ uint32_t warp_reduce_sum(uint32_t v);
-__device__ uint32_t warp_exclusive_scan(uint32_t v, int lane);
-__device__ uint32_t warp_inclusive_scan(uint32_t v, int lane);
+__device__ __forceinline__ uint32_t warp_reduce_sum(uint32_t v) {
+#ifdef __CUDACC__
+#pragma unroll
+#endif
+  for (int off = 16; off > 0; off >>= 1)
+#ifdef __CUDACC__
+    v += __shfl_down_sync(0xffffffffu, v, off);
+#endif
+  return v;
+}
+
+__device__ __forceinline__ uint32_t warp_exclusive_scan(uint32_t v, int lane) {
+  return warp_scan<true>(v, lane);
+}
+
+__device__ __forceinline__ uint32_t warp_inclusive_scan(uint32_t v, int lane) {
+  return warp_scan<false>(v, lane);
+}
 
 template <typename Func>
 __global__ void parallel_for(std::size_t size, Func func) {

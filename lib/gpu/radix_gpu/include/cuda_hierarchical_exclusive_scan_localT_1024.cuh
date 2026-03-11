@@ -305,27 +305,14 @@ __global__ void kernel_scan_tile1024_exclusive_inplace_and_emit_tile_sum(
   // -----------------------------
   // warp-local exclusive scan for this warp's 32 lanes
   // -----------------------------
-  uint32_t warp_ex = 0;
-  {
-    uint32_t v = value; // inclusive scan in v, then convert to exclusive
-#pragma unroll
-    for (int off = 1; off < 32; off <<= 1) {
-      uint32_t n = __shfl_up_sync(0xffffffffu, v, off);
-      if (lane >= (uint32_t)off)
-        v += n;
-    }
-    uint32_t prev = __shfl_up_sync(0xffffffffu, v, 1);
-    warp_ex = (lane == 0) ? 0u : prev;
-  }
+  uint32_t warp_ex = cudahelper::warp_exclusive_scan(value, lane);
 
   // -----------------------------
   // warp sum (reduce within warp)
   // -----------------------------
   uint32_t sum = value;
-#pragma unroll
-  for (int off = 16; off > 0; off >>= 1) {
-    sum += __shfl_down_sync(0xffffffffu, sum, off);
-  }
+
+  sum = cudahelper::warp_reduce_sum(sum);
   sum = __shfl_sync(0xffffffffu, sum, 0); // broadcast lane0's sum to all lanes
 
   // lane0 writes the warp sum
@@ -339,14 +326,7 @@ __global__ void kernel_scan_tile1024_exclusive_inplace_and_emit_tile_sum(
   // -----------------------------
   if (warp_id == 0) {
     uint32_t v = warp_sums[lane]; // lane 0..31
-#pragma unroll
-    for (int off = 1; off < 32; off <<= 1) {
-      uint32_t n = __shfl_up_sync(0xffffffffu, v, off);
-      if (lane >= (uint32_t)off)
-        v += n;
-    }
-    uint32_t prev = __shfl_up_sync(0xffffffffu, v, 1);
-    warp_prefix[lane] = (lane == 0) ? 0u : prev; // exclusive
+    warp_prefix[lane] = cudahelper::warp_exclusive_scan(v, lane);
   }
   __syncthreads();
 
@@ -435,26 +415,12 @@ __global__ void kernel_exclusive_scan_upto1024_per_bin(
     v = data[bin * stride + idx];
 
   // warp inclusive -> exclusive
-  uint32_t warp_ex = 0;
-  {
-    uint32_t x = v;
-#pragma unroll
-    for (int off = 1; off < 32; off <<= 1) {
-      uint32_t n = __shfl_up_sync(0xffffffffu, x, off);
-      if (lane >= (uint32_t)off)
-        x += n;
-    }
-    uint32_t prev = __shfl_up_sync(0xffffffffu, x, 1);
-    warp_ex = (lane == 0) ? 0u : prev;
-  }
+  uint32_t warp_ex = cudahelper::warp_exclusive_scan(v, lane);
 
   // warp sum
   uint32_t sum = v;
-#pragma unroll
-  for (int off = 16; off > 0; off >>= 1) {
-    sum += __shfl_down_sync(0xffffffffu, sum, off);
-  }
-  sum = __shfl_sync(0xffffffffu, sum, 0);
+  sum = cudahelper::warp_reduce_sum(sum);
+  sum = __shfl_sync(0xffffffffu, sum, 0); // broadcast lane0's sum to all lanes
 
   if (lane == 0)
     warp_sums[warp_id] = sum;
@@ -463,14 +429,7 @@ __global__ void kernel_exclusive_scan_upto1024_per_bin(
   // warp0 scans warp_sums to warp_prefix
   if (warp_id == 0) {
     uint32_t x = warp_sums[lane];
-#pragma unroll
-    for (int off = 1; off < 32; off <<= 1) {
-      uint32_t n = __shfl_up_sync(0xffffffffu, x, off);
-      if (lane >= (uint32_t)off)
-        x += n;
-    }
-    uint32_t prev = __shfl_up_sync(0xffffffffu, x, 1);
-    warp_prefix[lane] = (lane == 0) ? 0u : prev;
+    warp_prefix[lane] = cudahelper::warp_exclusive_scan(x, lane);
   }
   __syncthreads();
 
