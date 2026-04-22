@@ -6,14 +6,16 @@ GPU utilities, and HPC-oriented memory management components.
 
 ## Project Status
 
-**libHPC** is a personal high-performance computing library developed for my own learning and experimentation.
+This public archive preserves the state of libHPC at the point where its core
+HPC primitives — GPU radix sort, ABA-safe lock-free queue, SIMD kernels,
+and cache-hierarchy benchmarks — reached a stable, validated milestone.
 
-- This project is **no longer actively maintained** and will not receive any future updates.
-- The code is provided **for educational and interview demonstration purposes only**.
-- It is **not intended for production use** or commercial applications.
-- You are welcome to study the code for personal learning. Commercial use, modification for proprietary projects, or redistribution without explicit permission is not permitted.
+Active development continues privately. The archive is retained for study,
+reference, and portfolio purposes; commercial use, redistribution, or
+derivative proprietary work without explicit permission is not permitted.
 
-I reserve all rights to this codebase.
+Platform support status, known limitations, and benchmarks are documented
+in the sections below.
 
 ## 0x00 Platform Support
 
@@ -24,6 +26,13 @@ I reserve all rights to this codebase.
 | **macOS (Intel)**                 | ✓ Supported, limited |
 | **macOS (Apple Silicon / ARM64)** | ✗ **Not supported**  |
 
+### macOS ARM Technical Post-Mortem
+
+libHPC previously supported macOS ARM. However, recent Xcode toolchains explicitly mark several libc++ ABI symbols as **FORBIDDEN** (Xcode displays a “prohibited symbol” icon).
+
+Specifically, `std::__1::__hash_memory`, a critical dependency for oneTBB, has been removed/hidden at the SDK level.
+
+Since this is a breaking change in the Apple SDK/Toolchain itself, it cannot be resolved within libHPC. As a result, macOS ARM support has been formally dropped to maintain the integrity of the HPC pipeline.
 
 
 ## 0x01 macOS Apple Silicon Notice
@@ -41,17 +50,9 @@ Apple’s recent macOS / Xcode toolchain updates introduced ABI changes in libc+
 Since the goal of libHPC is stable, reproducible high-performance computing,
 macOS ARM is excluded to avoid degraded reliability or performance.
 
-## 0x02 macOS ARM Technical Post-Mortem
-
-libHPC previously supported macOS ARM. However, recent Xcode toolchains explicitly mark several libc++ ABI symbols as **FORBIDDEN** (Xcode displays a “prohibited symbol” icon).
-
-Specifically, `std::__1::__hash_memory`, a critical dependency for oneTBB, has been removed/hidden at the SDK level.
-
-Since this is a breaking change in the Apple SDK/Toolchain itself, it cannot be resolved within libHPC. As a result, macOS ARM support has been formally dropped to maintain the integrity of the HPC pipeline.
-
 ---
 
-## 0x03 GPU Performance Optimization Highlights
+## 0x02 GPU Performance Optimization Highlights
 
 libHPC includes GPU-accelerated kernels optimized for high-throughput computation on NVIDIA CUDA-compatible devices:
 
