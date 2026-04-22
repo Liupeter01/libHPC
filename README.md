@@ -34,7 +34,6 @@ Specifically, `std::__1::__hash_memory`, a critical dependency for oneTBB, has b
 
 Since this is a breaking change in the Apple SDK/Toolchain itself, it cannot be resolved within libHPC. As a result, macOS ARM support has been formally dropped to maintain the integrity of the HPC pipeline.
 
---
 
 ## 0x01 macOS Apple Silicon Notice
 
