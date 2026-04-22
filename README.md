@@ -26,14 +26,6 @@ in the sections below.
 | **macOS (Intel)**                 | ✓ Supported, limited |
 | **macOS (Apple Silicon / ARM64)** | ✗ **Not supported**  |
 
-### macOS ARM Technical Post-Mortem
-
-libHPC previously supported macOS ARM. However, recent Xcode toolchains explicitly mark several libc++ ABI symbols as **FORBIDDEN** (Xcode displays a “prohibited symbol” icon).
-
-Specifically, `std::__1::__hash_memory`, a critical dependency for oneTBB, has been removed/hidden at the SDK level.
-
-Since this is a breaking change in the Apple SDK/Toolchain itself, it cannot be resolved within libHPC. As a result, macOS ARM support has been formally dropped to maintain the integrity of the HPC pipeline.
-
 
 ## 0x01 macOS Apple Silicon Notice
 
@@ -44,11 +36,12 @@ The reason is simple:
 Apple’s recent macOS / Xcode toolchain updates introduced ABI changes in libc++, causing oneTBB and other HPC components to fail at link-time.
 
 > **Apple’s recent macOS / Xcode toolchain updates introduced ABI changes in `libc++`, causing oneTBB and other HPC components to fail at link-time.**  
->
+> Specifically, `std::__1::__hash_memory`, a critical dependency for oneTBB, has been removed/hidden at the SDK level.
 > These issues do not occur on Linux or Windows, and they did not occur on older macOS versions.
 
 Since the goal of libHPC is stable, reproducible high-performance computing,
 macOS ARM is excluded to avoid degraded reliability or performance.
+
 
 ---
 
