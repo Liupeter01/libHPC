@@ -9,6 +9,7 @@
 #define _HPC_HIGH_DIMENSION_FLAT_ARRAY_HPP_
 
 #include <AlignedAlloc.hpp>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <vector>
@@ -96,6 +97,10 @@ public:
    * @brief Returns a const pointer to the underlying flat buffer.
    */
   constexpr const _Ty *data() const noexcept { return _flat.data(); }
+
+  void zero() {
+    std::fill(_flat.begin(), _flat.end(), _Ty{});
+  }
 
   /**
    * @brief Accesses an element using a dimension array with bounds checking.
