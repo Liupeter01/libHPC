@@ -1,7 +1,7 @@
-# Coreforge: High-Performance Computing Core
+# libHPC: High-Performance Computing Core
 ## Platform Support
 
-Coreforge provides SIMD-optimized kernels, concurrent and sparse data
+libHPC provides SIMD-optimized kernels, concurrent and sparse data
 structures, GPU utilities, and HPC-oriented memory management components.
 
 ---
