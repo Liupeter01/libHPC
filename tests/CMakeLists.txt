@@ -20,8 +20,10 @@ elseif(WIN32)
 endif()
 
 FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+googletest
+GIT_REPOSITORY https://github.com/google/googletest.git
+GIT_TAG  v1.18.0
+GIT_SHALLOW    ON   
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -32,10 +34,12 @@ set(gtest_force_shared_crt
 FetchContent_MakeAvailable(googletest)
 
 # Universal Package
+add_subdirectory(test_hpc_array)
+add_subdirectory(test_sparse)
 add_subdirectory(test_hpc_benchmark)
 add_subdirectory(test_radixsort_cpu)
 
-if(CMAKE_CUDA_COMPILER)
+if(LIBHPC_HAS_CUDA)
   add_subdirectory(test_stall_lg_testsuite)
   add_subdirectory(test_overlap_pipeline_sweep_testsuite)
   add_subdirectory(test_compute_intensity_latency_sweep)
